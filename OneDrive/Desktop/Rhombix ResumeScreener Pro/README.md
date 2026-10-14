@@ -3,7 +3,7 @@
 ![Python 3.13](https://img.shields.io/badge/python-3.13-blue.svg)
 ![FastAPI](https://img.shields.io/badge/FastAPI-0.115+-green.svg)
 ![SQLAlchemy](https://img.shields.io/badge/SQLAlchemy-2.0-red.svg)
-![Phase 1](https://img.shields.io/badge/Phase%201-Completed-success.svg)
+![Phase 2](https://img.shields.io/badge/Phase%202-Completed-success.svg)
 
 Enterprise-grade AI & Hybrid Resume Screening & Candidate Matching Platform. Designed with an Enterprise Cyber-Minimalist Dark Mode UI, FastAPI async backend, SQLAlchemy 2.0 AsyncEngine, PostgreSQL, and Redis-backed task workers.
 
@@ -22,9 +22,9 @@ Rhombix ResumeScreener Pro automates and optimizes the candidate screening lifec
 
 ---
 
-## 📌 Progress Tracking (Phase 1 Complete)
+## 📌 Progress Tracking (Phase 2 Complete)
 - [x] **Phase 1: Project Initialization & Async Core Architecture** (Steps 1-5 Completed)
-- [ ] Phase 2: Database Schema & Migration Engine
+- [x] **Phase 2: Database Schema & Migration Engine** (Steps 1-5 Completed)
 - [ ] Phase 3: Resume File Processing Service (PDF & DOCX)
 - [ ] Phase 4: Job Description Processing & Keyword Tokenizer
 - [ ] Phase 5: Core Candidate Filtering & Matching Scoring Engine
@@ -33,6 +33,25 @@ Rhombix ResumeScreener Pro automates and optimizes the candidate screening lifec
 - [ ] Phase 8: SMTP Email Notification & Alert Subsystem
 - [ ] Phase 9: Base UI & Templating Setup (Cyber-Dark Theme)
 - [ ] Phase 10: Requirements Integrity Audit & Core Freeze
+
+---
+
+## 🗄️ Database Setup & Migrations
+
+1. **Create PostgreSQL Database:**
+   ```sql
+   CREATE DATABASE rhombix_resume_screener;
+   ```
+
+2. **Run Alembic Migrations:**
+   ```bash
+   alembic upgrade head
+   ```
+
+3. **Seed Initial Data:**
+   ```bash
+   python scripts/seed_data.py
+   ```
 
 ---
 
