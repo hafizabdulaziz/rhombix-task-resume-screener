@@ -1,57 +1,19 @@
-# Python
 __pycache__/
 *.py[cod]
 *$py.class
-*.so
-.Python
-build/
-develop-eggs/
-dist/
-downloads/
-eggs/
-.eggs/
-lib/
-lib64/
-parts/
-sdist/
-var/
-wheels/
-share/python-wheels/
-*.egg-info/
-.installed.cfg
-*.egg
-MANIFEST
-
-# Pytest / Testing
-.pytest_cache/
-.mypy_cache/
-.ruff_cache/
-htmlcov/
-.coverage
-.coverage.*
-coverage.xml
-test_reports/
-
-# Virtual Environments
 .venv/
 venv/
 ENV/
 env/
-
-# IDE / Editor
-.vscode/
-.idea/
-*.swp
-*.swo
-
-# Environment variables
 .env
-.env.local
-
-# Database
 *.db
 *.sqlite3
-
-# Uploads / Storage
-storage/
-uploads/
+storage/uploads/*
+storage/exports/*
+.pytest_cache/
+.coverage
+htmlcov/
+.DS_Store
+*.log
+OneDrive/
+Desktop/
