@@ -1,4 +1,4 @@
-from datetime import datetime
+from datetime import datetime, timezone
 from sqlalchemy import String, Text, DateTime, Float, ForeignKey, Integer
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
@@ -13,8 +13,8 @@ class JobDescription(Base):
     description: Mapped[str] = mapped_column(Text)
     required_skills: Mapped[str] = mapped_column(Text) # JSON list or comma-separated
     min_experience_years: Mapped[float] = mapped_column(Float, default=0.0)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow, onupdate=datetime.utcnow)
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
 
     match_results: Mapped[list["MatchResult"]] = relationship("MatchResult", back_populates="job", cascade="all, delete-orphan")
 
@@ -29,7 +29,7 @@ class MatchResult(Base):
     experience_match_score: Mapped[float] = mapped_column(Float, default=0.0)
     semantic_score: Mapped[float] = mapped_column(Float, default=0.0)
     summary_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
-    evaluated_at: Mapped[datetime] = mapped_column(DateTime, default=datetime.utcnow)
+    evaluated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
 
     job: Mapped["JobDescription"] = relationship("JobDescription", back_populates="match_results")
     candidate: Mapped["Candidate"] = relationship("Candidate", back_populates="match_results")
@@ -44,4 +44,4 @@ class SkillScore(Base):
     is_matched: Mapped[bool] = mapped_column(default=False)
     match_type: Mapped[str] = mapped_column(String(50), default="exact") # exact, synonym, missing
 
-    match_result: Mapped["MatchResult"] = relationship("MatchResult", back_populates="skill_scores")
+    match_result: Mapped["MatchResult"] = relationship("MatchResult", back_populates="match_results")
