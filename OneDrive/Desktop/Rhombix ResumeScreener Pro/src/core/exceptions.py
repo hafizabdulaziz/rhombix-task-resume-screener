@@ -26,3 +26,5 @@ def setup_exception_handlers(app: FastAPI) -> None:
             status_code=status_code.HTTP_500_INTERNAL_SERVER_ERROR,
             content={"error": "Internal server error occurred."},
         )
+
+register_exception_handlers = setup_exception_handlers

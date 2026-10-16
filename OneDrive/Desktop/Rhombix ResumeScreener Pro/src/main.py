@@ -6,6 +6,10 @@ import logging
 
 from src.core.config import settings
 from src.core.exceptions import register_exception_handlers
+from src.routers.jobs import router as jobs_router
+from src.routers.screener import router as screener_router
+from src.routers.export import router as export_router
+from src.routers.web import router as web_router
 
 # Configure structured logging
 structlog.configure(
@@ -49,6 +53,12 @@ def create_app() -> FastAPI:
 
     # Register Exception Handlers
     register_exception_handlers(app)
+
+    # Include Routers
+    app.include_router(jobs_router)
+    app.include_router(screener_router)
+    app.include_router(export_router)
+    app.include_router(web_router)
 
     @app.get("/health", tags=["Health"])
     async def health_check():
