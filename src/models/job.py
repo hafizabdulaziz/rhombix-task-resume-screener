@@ -44,4 +44,4 @@ class SkillScore(Base):
     is_matched: Mapped[bool] = mapped_column(default=False)
     match_type: Mapped[str] = mapped_column(String(50), default="exact") # exact, synonym, missing
 
-    match_result: Mapped["MatchResult"] = relationship("MatchResult", back_populates="match_results")
+    match_result: Mapped["MatchResult"] = relationship("MatchResult", back_populates="skill_scores")
