@@ -16,6 +16,19 @@ Enterprise-grade AI & Hybrid Resume Screening & Candidate Matching Platform buil
 - Initial baseline migration created and applied (`alembic/versions/001_initial_baseline.py`).
 - Database seeding script (`scripts/seed_data.py`) implemented for initial job and candidate records.
 
+## Phase 3 Status: COMPLETED - Resume File Processing Service (PDF & DOCX)
+- File validation service (`src/services/upload.py`) for format, size, and magic headers.
+- PDF parser (`src/services/pdf_parser.py`) via pdfplumber and pypdf fallback.
+- DOCX parser (`src/services/docx_parser.py`) via python-docx.
+- Local storage manager (`src/services/storage.py`) for secure async file persistence.
+
+## Phase 4 Status: COMPLETED - Job Description Processing & Keyword Tokenizer
+- Job Description Ingestion API (`src/routers/jobs.py`) created.
+- NLP Keyword Tokenizer (`src/services/nlp.py`) implemented for tokenization and skill extraction.
+- Taxonomy Categorizer (`src/services/taxonomy.py`) for Hard Skills, Soft Skills, Education, and Experience.
+- Requirement Weight Matrix (`src/services/weighting.py`) for composite score calculations.
+- Comprehensive unit tests (`tests/test_jobs.py`) added.
+
 ### Database Setup & Migration Guide
 1. Configure `.env` with `DATABASE_URL` (SQLite or PostgreSQL async URL).
 2. Run migrations:
