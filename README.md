@@ -50,6 +50,13 @@ Enterprise-grade AI & Hybrid Resume Screening & Candidate Matching Platform buil
 - Streaming download response handlers for bulk export performance (`GET /api/v1/export/excel/{job_id}`).
 - Comprehensive export unit tests (`tests/test_export.py`).
 
+## Phase 8 Status: COMPLETED - SMTP Email Notification & Alert Subsystem
+- Async SMTP client (`src/services/email.py`) with Jinja2 HTML template rendering.
+- Branded shortlisted candidate notification template (`src/templates/email_shortlisted.html`).
+- HR batch screening digest summary email alert service (`src/services/email_digest.py`).
+- Async background task email dispatchers attached to candidate shortlisting endpoints.
+- Comprehensive mock SMTP test suite (`tests/test_email.py`).
+
 ### Database Setup & Migration Guide
 1. Configure `.env` with `DATABASE_URL` (SQLite or PostgreSQL async URL).
 2. Run migrations:
