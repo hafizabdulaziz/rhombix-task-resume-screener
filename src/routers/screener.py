@@ -11,6 +11,7 @@ from src.models.candidate import Candidate, CandidateStatus, ResumeFile, Extract
 from src.models.job import JobDescription, MatchResult, SkillScore
 from src.services.matching import ResumeMatcher
 from src.services.candidate_lifecycle import CandidateLifecycleManager
+from src.services.email import EmailService
 from src.core.exceptions import AppError
 import structlog
 
@@ -248,4 +249,10 @@ async def update_candidate_status(candidate_id: int, status_req: StatusUpdateReq
     Updates the shortlisting status lifecycle of a candidate using CandidateLifecycleManager.
     """
     candidate = await CandidateLifecycleManager.update_status(db, candidate_id, status_req.status)
+    if status_req.status == CandidateStatus.SHORTLISTED:
+        await EmailService.send_shortlisted_notification(
+            candidate_name=candidate.full_name,
+            candidate_email=candidate.email,
+            job_title="Target Position"
+        )
     return {"message": "Candidate status updated successfully", "candidate_id": candidate.id, "status": candidate.status}
