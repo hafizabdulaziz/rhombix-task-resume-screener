@@ -29,6 +29,13 @@ Enterprise-grade AI & Hybrid Resume Screening & Candidate Matching Platform buil
 - Requirement Weight Matrix (`src/services/weighting.py`) for composite score calculations.
 - Comprehensive unit tests (`tests/test_jobs.py`) added.
 
+## Phase 5 Status: COMPLETED - Core Candidate Filtering & Matching Scoring Engine
+- TF-IDF Matcher Engine (`src/services/tfidf_matcher.py`) for semantic relevance scoring.
+- Exact & Synonym Skill Matching Algorithm (`src/services/skill_matcher.py`).
+- Experience Duration Extractor & Parser (`src/services/experience_parser.py`).
+- Composite Score Engine (`src/services/composite_scorer.py`) for aggregated 0-100% ranking.
+- Comprehensive matching test coverage (`tests/test_matching.py`).
+
 ### Database Setup & Migration Guide
 1. Configure `.env` with `DATABASE_URL` (SQLite or PostgreSQL async URL).
 2. Run migrations:
