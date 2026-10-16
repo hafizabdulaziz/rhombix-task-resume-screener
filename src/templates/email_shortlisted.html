@@ -1,0 +1,30 @@
+<!DOCTYPE html>
+<html>
+<head>
+    <style>
+        body { font-family: 'Inter', Arial, sans-serif; background-color: #0f172a; color: #f8fafc; padding: 20px; }
+        .container { max-width: 600px; margin: 0 auto; background: #1e293b; padding: 30px; border-radius: 12px; border: 1px solid #334155; }
+        .header { text-align: center; border-bottom: 1px solid #334155; padding-bottom: 20px; margin-bottom: 20px; }
+        .logo { font-size: 24px; font-weight: bold; color: #10b981; }
+        .content { font-size: 16px; line-height: 1.6; color: #cbd5e1; }
+        .button { display: inline-block; background-color: #10b981; color: #ffffff; padding: 12px 24px; text-decoration: none; border-radius: 6px; margin-top: 20px; font-weight: bold; }
+        .footer { margin-top: 30px; font-size: 12px; text-align: center; color: #64748b; }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <div class="header">
+            <div class="logo">Rhombix ResumeScreener Pro</div>
+        </div>
+        <div class="content">
+            <p>Dear <strong>{{ candidate_name }}</strong>,</p>
+            <p>We are thrilled to inform you that your application for the position of <strong>{{ job_title }}</strong> has successfully passed our AI screening evaluation and you have been <strong>SHORTLISTED</strong>!</p>
+            <p>Our recruitment team will review your profile and reach out to you shortly regarding the next interview steps.</p>
+            <a href="{{ portal_url }}" class="button">View Application Status</a>
+        </div>
+        <div class="footer">
+            <p>&copy; 2026 Rhombix ResumeScreener Pro. All rights reserved.</p>
+        </div>
+    </div>
+</body>
+</html>
