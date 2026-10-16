@@ -1,15 +1,16 @@
-from fastapi import APIRouter, Depends, status, Query, HTTPException
+from fastapi import APIRouter, Depends, status, Query
 from sqlalchemy.ext.asyncio import AsyncSession
 from sqlalchemy import select
 from sqlalchemy.orm import selectinload
 from pydantic import BaseModel, Field, ConfigDict
 from typing import Optional, List
-from datetime import datetime
+from datetime import datetime, timezone
 
 from src.db.session import get_db
 from src.models.candidate import Candidate, CandidateStatus, ResumeFile, ExtractionData
 from src.models.job import JobDescription, MatchResult, SkillScore
 from src.services.matching import ResumeMatcher
+from src.services.candidate_lifecycle import CandidateLifecycleManager
 from src.core.exceptions import AppError
 import structlog
 
@@ -52,16 +53,13 @@ async def rank_candidates(rank_req: RankRequest, db: AsyncSession = Depends(get_
     """
     Executes batch candidate screening and scoring against a specified Job Description.
     """
-    # 1. Fetch Job Description
     job_res = await db.execute(select(JobDescription).where(JobDescription.id == rank_req.job_id))
     job = job_res.scalar_one_or_none()
     if not job:
         raise AppError(f"Job description with ID {rank_req.job_id} not found.", status_code=404)
 
-    # Parse required skills from job
     req_skills = [s.strip() for s in job.required_skills.split(",") if s.strip()]
 
-    # 2. Fetch Candidates with Resumes & Extraction Data
     query = select(Candidate).options(
         selectinload(Candidate.resumes).selectinload(ResumeFile.extraction)
     )
@@ -77,7 +75,6 @@ async def rank_candidates(rank_req: RankRequest, db: AsyncSession = Depends(get_
     results = []
 
     for candidate in candidates:
-        # Find latest resume with extraction
         latest_extraction = None
         for resume in candidate.resumes:
             if resume.extraction:
@@ -88,7 +85,6 @@ async def rank_candidates(rank_req: RankRequest, db: AsyncSession = Depends(get_
         cand_skills = [s.strip() for s in latest_extraction.parsed_skills.split(",") if s.strip()] if (latest_extraction and latest_extraction.parsed_skills) else []
         cand_exp = latest_extraction.experience_years if latest_extraction else 0.0
 
-        # Compute composite score
         score_data = ResumeMatcher.compute_composite_score(
             job_description=job.description,
             resume_text=resume_text,
@@ -98,7 +94,6 @@ async def rank_candidates(rank_req: RankRequest, db: AsyncSession = Depends(get_
             candidate_experience_years=cand_exp
         )
 
-        # Check existing match result or create new
         existing_match_res = await db.execute(
             select(MatchResult).options(selectinload(MatchResult.skill_scores)).where(
                 MatchResult.job_id == job.id,
@@ -113,8 +108,7 @@ async def rank_candidates(rank_req: RankRequest, db: AsyncSession = Depends(get_
             match_result.experience_match_score = score_data["experience_score"]
             match_result.semantic_score = score_data["similarity_score"]
             match_result.summary_notes = f"Matched {len(score_data['matched_skills'])} skills out of {len(req_skills)}."
-            match_result.evaluated_at = datetime.utcnow()
-            # Clear old skill scores
+            match_result.evaluated_at = datetime.now(timezone.utc)
             for ss in match_result.skill_scores:
                 await db.delete(ss)
             match_result.skill_scores = []
@@ -131,7 +125,6 @@ async def rank_candidates(rank_req: RankRequest, db: AsyncSession = Depends(get_
             db.add(match_result)
             await db.flush()
 
-        # Add skill scores
         all_skills_set = set(req_skills).union(set(score_data["matched_skills"]))
         for skill in all_skills_set:
             is_matched = skill in score_data["matched_skills"]
@@ -147,7 +140,6 @@ async def rank_candidates(rank_req: RankRequest, db: AsyncSession = Depends(get_
         await db.commit()
         await db.refresh(match_result)
 
-        # Build response item
         results.append({
             "id": match_result.id,
             "job_id": match_result.job_id,
@@ -163,7 +155,6 @@ async def rank_candidates(rank_req: RankRequest, db: AsyncSession = Depends(get_
             "evaluated_at": match_result.evaluated_at
         })
 
-    # Sort results descending by composite score
     results.sort(key=lambda x: x["composite_score"], reverse=True)
     logger.info("candidates_ranked", job_id=job.id, total_screened=len(results))
     return results
@@ -214,17 +205,47 @@ async def get_job_rankings(
 
     return response_items
 
+@router.get("/candidate/{candidate_id}/breakdown", status_code=status.HTTP_200_OK)
+async def get_candidate_score_breakdown(candidate_id: int, db: AsyncSession = Depends(get_db)):
+    """
+    Retrieves detailed score breakdown for a specific candidate across all applied/matched jobs.
+    """
+    res = await db.execute(
+        select(MatchResult).options(
+            selectinload(MatchResult.job),
+            selectinload(MatchResult.skill_scores)
+        ).where(MatchResult.candidate_id == candidate_id)
+    )
+    matches = res.scalars().all()
+    if not matches:
+        raise AppError(f"No match results found for candidate ID {candidate_id}.", status_code=404)
+
+    breakdowns = []
+    for m in matches:
+        breakdowns.append({
+            "match_id": m.id,
+            "job_id": m.job_id,
+            "job_title": m.job.title,
+            "composite_score": m.composite_score,
+            "skill_match_score": m.skill_match_score,
+            "experience_match_score": m.experience_match_score,
+            "semantic_score": m.semantic_score,
+            "summary_notes": m.summary_notes,
+            "skill_scores": [
+                {
+                    "skill_name": ss.skill_name,
+                    "is_matched": ss.is_matched,
+                    "match_type": ss.match_type
+                } for ss in m.skill_scores
+            ],
+            "evaluated_at": m.evaluated_at
+        })
+    return {"candidate_id": candidate_id, "breakdowns": breakdowns}
+
 @router.patch("/candidates/{candidate_id}/status", status_code=status.HTTP_200_OK)
 async def update_candidate_status(candidate_id: int, status_req: StatusUpdateRequest, db: AsyncSession = Depends(get_db)):
     """
-    Updates the shortlisting status lifecycle of a candidate (pending, shortlisted, rejected, on_hold).
+    Updates the shortlisting status lifecycle of a candidate using CandidateLifecycleManager.
     """
-    res = await db.execute(select(Candidate).where(Candidate.id == candidate_id))
-    candidate = res.scalar_one_or_none()
-    if not candidate:
-        raise AppError(f"Candidate with ID {candidate_id} not found.", status_code=404)
-
-    candidate.status = status_req.status
-    await db.commit()
-    logger.info("candidate_status_updated", candidate_id=candidate.id, new_status=candidate.status)
+    candidate = await CandidateLifecycleManager.update_status(db, candidate_id, status_req.status)
     return {"message": "Candidate status updated successfully", "candidate_id": candidate.id, "status": candidate.status}
