@@ -43,6 +43,13 @@ Enterprise-grade AI & Hybrid Resume Screening & Candidate Matching Platform buil
 - Detailed candidate score breakdown endpoint (`GET /api/v1/screener/candidate/{id}/breakdown`).
 - Integration tests (`tests/test_screener.py`) added.
 
+## Phase 7 Status: COMPLETED - Export Engine (Excel & CSV Detailed Reports)
+- Formatted Excel workbook builder (`src/services/export.py`) with custom styling and branding.
+- Multi-sheet candidate evaluation report generator (Summary + Skill Breakdown sheets).
+- CSV export endpoint (`GET /api/v1/export/csv/{job_id}`) in `src/routers/export.py`.
+- Streaming download response handlers for bulk export performance (`GET /api/v1/export/excel/{job_id}`).
+- Comprehensive export unit tests (`tests/test_export.py`).
+
 ### Database Setup & Migration Guide
 1. Configure `.env` with `DATABASE_URL` (SQLite or PostgreSQL async URL).
 2. Run migrations:
