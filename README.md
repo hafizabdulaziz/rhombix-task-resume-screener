@@ -36,6 +36,13 @@ Enterprise-grade AI & Hybrid Resume Screening & Candidate Matching Platform buil
 - Composite Score Engine (`src/services/composite_scorer.py`) for aggregated 0-100% ranking.
 - Comprehensive matching test coverage (`tests/test_matching.py`).
 
+## Phase 6 Status: COMPLETED - Candidate Ranking & Shortlisting API
+- Batch candidate screening execution API (`POST /api/v1/screener/rank`) in `src/routers/screener.py`.
+- Dynamic score filtering and pagination (`GET /api/v1/screener/results/{job_id}`).
+- Candidate shortlisting lifecycle manager (`src/services/candidate_lifecycle.py`).
+- Detailed candidate score breakdown endpoint (`GET /api/v1/screener/candidate/{id}/breakdown`).
+- Integration tests (`tests/test_screener.py`) added.
+
 ### Database Setup & Migration Guide
 1. Configure `.env` with `DATABASE_URL` (SQLite or PostgreSQL async URL).
 2. Run migrations:
