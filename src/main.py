@@ -1,6 +1,5 @@
 from contextlib import asynccontextmanager
 from fastapi import FastAPI
-from fastapi.responses import RedirectResponse
 from fastapi.middleware.cors import CORSMiddleware
 import structlog
 import logging
@@ -10,6 +9,7 @@ from src.core.exceptions import register_exception_handlers
 from src.routers.jobs import router as jobs_router
 from src.routers.screener import router as screener_router
 from src.routers.export import router as export_router
+from src.routers.web import router as web_router
 from src.db.session import engine
 from src.db.base import Base
 from src.models.job import JobDescription, MatchResult, SkillScore
@@ -65,17 +65,11 @@ def create_app() -> FastAPI:
     # Register Exception Handlers
     register_exception_handlers(app)
 
-    # Include API Routers
+    # Include API & Web Routers
     app.include_router(jobs_router)
     app.include_router(screener_router)
     app.include_router(export_router)
-
-    @app.get("/", include_in_schema=False)
-    async def root_redirect():
-        """
-        Redirects root URL directly to comprehensive Swagger UI (/docs).
-        """
-        return RedirectResponse(url="/docs", status_code=303)
+    app.include_router(web_router)
 
     @app.get("/health", tags=["Health"])
     async def health_check():

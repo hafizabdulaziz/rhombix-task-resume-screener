@@ -25,11 +25,10 @@ async def dashboard_view(
     request: Request,
     success: Optional[str] = Query(None),
     error: Optional[str] = Query(None),
-    tab: Optional[str] = Query("candidates"),
+    tab: Optional[str] = Query("jobs"),
     db: AsyncSession = Depends(get_db)
 ):
     try:
-        # Metrics
         cand_count_res = await db.execute(select(func.count(Candidate.id)))
         total_candidates = cand_count_res.scalar() or 0
 
@@ -39,11 +38,9 @@ async def dashboard_view(
         jobs_count_res = await db.execute(select(func.count(JobDescription.id)))
         total_jobs = jobs_count_res.scalar() or 0
 
-        # Jobs list
         jobs_res = await db.execute(select(JobDescription).order_by(JobDescription.created_at.desc()))
         jobs = jobs_res.scalars().all()
 
-        # Candidates list with resumes & extractions
         cand_res = await db.execute(
             select(Candidate).options(
                 selectinload(Candidate.resumes).selectinload(ResumeFile.extraction)
@@ -70,10 +67,6 @@ async def dashboard_view(
         "active_tab": tab
     })
 
-@router.get("/jobs", response_class=RedirectResponse)
-async def jobs_redirect():
-    return RedirectResponse(url="/?tab=jobs", status_code=303)
-
 @router.post("/jobs", response_class=RedirectResponse)
 async def create_job_form(
     title: str = Form(...),
@@ -98,15 +91,10 @@ async def create_job_form(
         )
         db.add(db_job)
         await db.commit()
-        logger.info("web_job_created", title=title)
-        return RedirectResponse(url="/?tab=jobs&success=Job+description+created+successfully", status_code=303)
+        return RedirectResponse(url="/?tab=jobs&success=Job+opening+successfully+created", status_code=303)
     except Exception as e:
         logger.error("web_job_create_error", error=str(e))
-        return RedirectResponse(url="/?tab=jobs&error=Failed+to+create+job+description", status_code=303)
-
-@router.get("/upload", response_class=RedirectResponse)
-async def upload_redirect():
-    return RedirectResponse(url="/?tab=upload", status_code=303)
+        return RedirectResponse(url="/?tab=jobs&error=Failed+to+create+job+opening", status_code=303)
 
 @router.post("/upload", response_class=RedirectResponse)
 async def upload_resumes_form(

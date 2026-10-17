@@ -3,12 +3,7 @@ from src.main import app
 
 client = TestClient(app)
 
-def test_root_redirects_to_swagger():
-    response = client.get("/", follow_redirects=False)
-    assert response.status_code == 303
-    assert response.headers["location"] == "/docs"
-
-def test_swagger_docs_accessible():
-    response = client.get("/docs")
+def test_web_silver_enterprise_portal():
+    response = client.get("/")
     assert response.status_code == 200
-    assert "Swagger UI" in response.text or "swagger" in response.text.lower()
+    assert "Premium Silver Enterprise Portal" in response.text

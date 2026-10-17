@@ -1,10 +1,10 @@
 {% extends "base.html" %}
 
-{% block title %}Master Enterprise Portal - Rhombix ResumeScreener Pro{% endblock %}
+{% block title %}Premium Silver Enterprise Portal - Rhombix ResumeScreener Pro{% endblock %}
 
 {% block content %}
-<div class="space-y-6" x-data="{ 
-    activeTab: '{{ active_tab }}' || 'candidates',
+<div class="space-y-8" x-data="{ 
+    activeSpace: '{{ active_tab }}' || 'jobs',
     selectedJobId: null,
     rankingResults: [],
     isRanking: false,
@@ -12,10 +12,16 @@
     breakdownModalOpen: false,
     breakdownData: null,
     loadingBreakdown: false,
-    
+    healthData: null,
+    checkingHealth: false,
+
+    init() {
+        this.checkSystemHealth();
+    },
+
     async rankCandidates() {
         if (!this.selectedJobId) {
-            alert('Please select a Job Description first.');
+            alert('Please select a Job Description in Space 4 or Space 1 first.');
             return;
         }
         this.isRanking = true;
@@ -63,165 +69,160 @@
         } finally {
             this.loadingBreakdown = false;
         }
+    },
+
+    async checkSystemHealth() {
+        this.checkingHealth = true;
+        try {
+            const response = await fetch('/health');
+            this.healthData = await response.json();
+        } catch (err) {
+            this.healthData = { status: 'unhealthy', error: err.message };
+        } finally {
+            this.checkingHealth = false;
+        }
     }
 }">
 
-    <!-- Success / Error Banners -->
+    <!-- Success / Error Toast Banners -->
     {% if success_message %}
-    <div class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-xl flex items-center justify-between text-sm shadow-lg">
-        <div class="flex items-center space-x-2">
-            <svg class="w-5 h-5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+    <div class="bg-emerald-50 border-l-4 border-emerald-600 text-emerald-900 p-4 rounded-r-xl shadow-md flex items-center justify-between text-sm">
+        <div class="flex items-center space-x-3">
+            <svg class="w-5 h-5 text-emerald-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
             <span class="font-medium">{{ success_message }}</span>
         </div>
-        <button onclick="this.parentElement.remove()" class="text-emerald-400 hover:text-emerald-300">&times;</button>
+        <button onclick="this.parentElement.remove()" class="text-emerald-600 hover:text-emerald-800 font-bold">&times;</button>
     </div>
     {% endif %}
 
     {% if error_message %}
-    <div class="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl flex items-center justify-between text-sm shadow-lg">
-        <div class="flex items-center space-x-2">
-            <svg class="w-5 h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+    <div class="bg-red-50 border-l-4 border-red-600 text-red-900 p-4 rounded-r-xl shadow-md flex items-center justify-between text-sm">
+        <div class="flex items-center space-x-3">
+            <svg class="w-5 h-5 text-red-600 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
             <span class="font-medium">{{ error_message }}</span>
         </div>
-        <button onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300">&times;</button>
+        <button onclick="this.parentElement.remove()" class="text-red-600 hover:text-red-800 font-bold">&times;</button>
     </div>
     {% endif %}
 
-    <!-- Header & Metrics Grid -->
-    <div class="flex flex-col md:flex-row md:items-center md:justify-between pb-6 border-b border-slate-800">
+    <!-- Portal Title & Overview -->
+    <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm flex flex-col md:flex-row md:items-center md:justify-between">
         <div>
-            <h1 class="text-2xl font-bold tracking-tight text-white flex items-center space-x-2">
-                <span>Master Recruitment Intelligence Portal</span>
-                <span class="bg-emerald-500/20 text-emerald-400 text-xs px-2.5 py-0.5 rounded-full border border-emerald-500/30">Cyber-Dark Workspace</span>
-            </h1>
-            <p class="text-sm text-slate-400 mt-1">Unified command center for candidate pools, job vacancies, AI screening, and reporting.</p>
+            <h1 class="text-2xl font-bold text-slate-900 tracking-tight">Premium Silver Enterprise Portal</h1>
+            <p class="text-sm text-slate-600 mt-1">Unified recruitment command center integrating all backend endpoints into structured spaces.</p>
+        </div>
+        <div class="mt-4 md:mt-0 flex items-center space-x-3">
+            <div class="text-right">
+                <div class="text-xs text-slate-500">Total Talent Pool</div>
+                <div class="text-lg font-bold text-slate-900">{{ total_candidates }} Candidates</div>
+            </div>
+            <div class="h-8 w-px bg-slate-300"></div>
+            <div class="text-right">
+                <div class="text-xs text-slate-500">Active Openings</div>
+                <div class="text-lg font-bold text-blue-600">{{ total_jobs }} Jobs</div>
+            </div>
         </div>
     </div>
 
-    <!-- Quick Metrics Cards -->
-    <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
-        <div class="bg-slate-850 p-6 rounded-xl border border-slate-800 shadow-lg">
-            <div class="text-sm font-medium text-slate-400">Total Candidates</div>
-            <div class="text-3xl font-bold text-white mt-2">{{ total_candidates }}</div>
-            <div class="text-xs text-emerald-400 mt-2">Parsed & indexed resumes</div>
-        </div>
-        <div class="bg-slate-850 p-6 rounded-xl border border-slate-800 shadow-lg">
-            <div class="text-sm font-medium text-slate-400">Shortlisted</div>
-            <div class="text-3xl font-bold text-emerald-400 mt-2">{{ shortlisted_count }}</div>
-            <div class="text-xs text-slate-400 mt-2">Ready for interview stage</div>
-        </div>
-        <div class="bg-slate-850 p-6 rounded-xl border border-slate-800 shadow-lg">
-            <div class="text-sm font-medium text-slate-400">Job Openings</div>
-            <div class="text-3xl font-bold text-white mt-2">{{ total_jobs }}</div>
-            <div class="text-xs text-slate-400 mt-2">Active roles in system</div>
-        </div>
-        <div class="bg-slate-850 p-6 rounded-xl border border-slate-800 shadow-lg">
-            <div class="text-sm font-medium text-slate-400">Screening Engine</div>
-            <div class="text-3xl font-bold text-emerald-400 mt-2">Active</div>
-            <div class="text-xs text-slate-400 mt-2">TF-IDF + Taxonomy Hybrid</div>
-        </div>
-    </div>
-
-    <!-- Tab Navigation Bar -->
-    <div class="flex space-x-2 border-b border-slate-800 pt-2">
-        <button @click="activeTab = 'candidates'" 
-                :class="activeTab === 'candidates' ? 'border-emerald-500 text-emerald-400 bg-slate-800/50' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'"
-                class="px-5 py-3 font-medium text-sm border-b-2 rounded-t-xl transition-all flex items-center space-x-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
-            <span>Live Candidate Pool ({{ candidates|length }})</span>
+    <!-- Navigation Spaces Bar -->
+    <div class="flex flex-wrap gap-2 border-b border-slate-300 pb-2">
+        <button @click="activeSpace = 'jobs'" 
+                :class="activeSpace === 'jobs' ? 'bg-blue-600 text-white shadow' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-300'"
+                class="px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center space-x-2">
+            <span>1. Job Openings</span>
         </button>
-        <button @click="activeTab = 'jobs'" 
-                :class="activeTab === 'jobs' ? 'border-emerald-500 text-emerald-400 bg-slate-800/50' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'"
-                class="px-5 py-3 font-medium text-sm border-b-2 rounded-t-xl transition-all flex items-center space-x-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.222-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
-            <span>Job Descriptions ({{ jobs|length }})</span>
+        <button @click="activeSpace = 'upload'" 
+                :class="activeSpace === 'upload' ? 'bg-blue-600 text-white shadow' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-300'"
+                class="px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center space-x-2">
+            <span>2. Resume Parser</span>
         </button>
-        <button @click="activeTab = 'screener'" 
-                :class="activeTab === 'screener' ? 'border-emerald-500 text-emerald-400 bg-slate-800/50' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'"
-                class="px-5 py-3 font-medium text-sm border-b-2 rounded-t-xl transition-all flex items-center space-x-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
-            <span>AI Screening & Ranking Engine</span>
+        <button @click="activeSpace = 'candidates'" 
+                :class="activeSpace === 'candidates' ? 'bg-blue-600 text-white shadow' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-300'"
+                class="px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center space-x-2">
+            <span>3. Candidate Pool ({{ candidates|length }})</span>
         </button>
-        <button @click="activeTab = 'upload'" 
-                :class="activeTab === 'upload' ? 'border-emerald-500 text-emerald-400 bg-slate-800/50' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'"
-                class="px-5 py-3 font-medium text-sm border-b-2 rounded-t-xl transition-all flex items-center space-x-2">
-            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
-            <span>Batch Upload Resumes</span>
+        <button @click="activeSpace = 'screener'" 
+                :class="activeSpace === 'screener' ? 'bg-blue-600 text-white shadow' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-300'"
+                class="px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center space-x-2">
+            <span>4. AI Screening & Rank</span>
+        </button>
+        <button @click="activeSpace = 'export'" 
+                :class="activeSpace === 'export' ? 'bg-blue-600 text-white shadow' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-300'"
+                class="px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center space-x-2">
+            <span>5. Reports & Export</span>
+        </button>
+        <button @click="activeSpace = 'health'" 
+                :class="activeSpace === 'health' ? 'bg-blue-600 text-white shadow' : 'bg-white text-slate-700 hover:bg-slate-100 border border-slate-300'"
+                class="px-4 py-2.5 rounded-xl font-medium text-xs sm:text-sm transition-all flex items-center space-x-2">
+            <span>6. System Health</span>
         </button>
     </div>
 
-    <!-- ================= TAB 1: CANDIDATE POOL ================= -->
-    <div x-show="activeTab === 'candidates'" class="space-y-6">
-        <div class="flex items-center justify-between">
-            <h2 class="text-lg font-semibold text-white">Parsed Candidate Talent Pool</h2>
-            <button @click="activeTab = 'upload'" class="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-lg shadow-emerald-900/20 flex items-center space-x-2">
-                <span>+ Upload New Resumes</span>
-            </button>
+    <!-- ================= SPACE 1: JOB OPENINGS & REQUIREMENTS ================= -->
+    <div x-show="activeSpace === 'jobs'" class="grid grid-cols-1 lg:grid-cols-3 gap-6" x-cloak>
+        <!-- Create Job Form -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm lg:col-span-1 space-y-4">
+            <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-3">Create Job Opening</h2>
+            <form action="/jobs" method="POST" class="space-y-4">
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Job Title *</label>
+                    <input type="text" name="title" required placeholder="e.g. Senior Backend Architect" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-colors">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Department</label>
+                    <input type="text" name="department" placeholder="e.g. Engineering" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-colors">
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Job Description *</label>
+                    <textarea name="description" rows="4" required placeholder="Enter role requirements and responsibilities..." class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-colors"></textarea>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Required Skills (Comma separated)</label>
+                    <input type="text" name="required_skills" placeholder="Python, FastAPI, PostgreSQL, Docker" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-colors">
+                    <span class="text-[11px] text-slate-500 mt-1 block">Auto-extracted via NLP if left empty.</span>
+                </div>
+                <div>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Min Experience Years</label>
+                    <input type="number" step="0.5" name="min_experience_years" value="3.0" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-600 focus:bg-white transition-colors">
+                </div>
+                <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-2.5 rounded-xl text-sm transition-colors shadow">
+                    Save & Post Job
+                </button>
+            </form>
         </div>
 
-        <div class="bg-slate-850 rounded-xl border border-slate-800 overflow-hidden shadow-xl">
+        <!-- Job List -->
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm lg:col-span-2 space-y-4">
+            <h2 class="text-lg font-bold text-slate-900 border-b border-slate-200 pb-3">Active Job Vacancies</h2>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-800/60 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-800">
-                            <th class="py-3 px-4 font-semibold">Candidate Name</th>
-                            <th class="py-3 px-4 font-semibold">Email</th>
-                            <th class="py-3 px-4 font-semibold">Skills Extracted</th>
-                            <th class="py-3 px-4 font-semibold">Experience</th>
-                            <th class="py-3 px-4 font-semibold">Status</th>
-                            <th class="py-3 px-4 font-semibold text-right">Actions</th>
+                        <tr class="bg-slate-100 text-slate-600 text-xs uppercase font-semibold border-b border-slate-200">
+                            <th class="py-3 px-4">Title</th>
+                            <th class="py-3 px-4">Department</th>
+                            <th class="py-3 px-4">Required Skills</th>
+                            <th class="py-3 px-4">Min Exp</th>
+                            <th class="py-3 px-4 text-right">Actions</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-800 text-sm text-slate-300">
-                        {% if candidates %}
-                            {% for cand in candidates %}
-                            <tr class="hover:bg-slate-800/30 transition-colors">
-                                <td class="py-3 px-4 font-medium text-white">
-                                    <button @click="openBreakdown({{ cand.id }})" class="hover:text-emerald-400 text-left underline decoration-dotted transition-colors">
-                                        {{ cand.full_name }}
-                                    </button>
-                                </td>
-                                <td class="py-3 px-4 text-slate-400">{{ cand.email }}</td>
-                                <td class="py-3 px-4 max-w-xs truncate">
-                                    {% set latest_ext = cand.resumes[0].extraction if cand.resumes and cand.resumes[0].extraction else none %}
-                                    {% if latest_ext and latest_ext.parsed_skills %}
-                                        <span class="text-xs bg-slate-800 text-emerald-400 px-2 py-1 rounded border border-slate-700">{{ latest_ext.parsed_skills }}</span>
-                                    {% else %}
-                                        <span class="text-xs text-slate-500">None detected</span>
-                                    {% endif %}
-                                </td>
-                                <td class="py-3 px-4">
-                                    {% if latest_ext %}
-                                        <span class="font-semibold text-slate-200">{{ latest_ext.experience_years }} yrs</span>
-                                    {% else %}
-                                        <span class="text-slate-500">0 yrs</span>
-                                    {% endif %}
-                                </td>
-                                <td class="py-3 px-4">
-                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold
-                                        {% if cand.status.value == 'shortlisted' %} bg-emerald-500/10 text-emerald-400 border border-emerald-500/30
-                                        {% elif cand.status.value == 'rejected' %} bg-red-500/10 text-red-400 border border-red-500/30
-                                        {% else %} bg-amber-500/10 text-amber-400 border border-amber-500/30 {% endif %}">
-                                        {{ cand.status.value | upper }}
-                                    </span>
-                                </td>
-                                <td class="py-3 px-4 text-right space-x-2">
-                                    <select @change="updateStatus({{ cand.id }}, $event.target.value)" class="bg-slate-800 text-xs text-slate-200 rounded px-2 py-1 border border-slate-700 focus:outline-none focus:border-emerald-500">
-                                        <option value="" disabled selected>Change Status</option>
-                                        <option value="pending">Pending</option>
-                                        <option value="shortlisted">Shortlist</option>
-                                        <option value="rejected">Reject</option>
-                                        <option value="on_hold">On-Hold</option>
-                                    </select>
-                                    <button @click="openBreakdown({{ cand.id }})" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs px-2.5 py-1 rounded border border-slate-700 transition-colors">
-                                        Breakdown
+                    <tbody class="divide-y divide-slate-200 text-sm text-slate-700">
+                        {% if jobs %}
+                            {% for job in jobs %}
+                            <tr class="hover:bg-slate-50 transition-colors">
+                                <td class="py-3 px-4 font-semibold text-slate-900">{{ job.title }}</td>
+                                <td class="py-3 px-4 text-slate-600">{{ job.department or 'General' }}</td>
+                                <td class="py-3 px-4 max-w-xs truncate text-xs text-blue-600">{{ job.required_skills }}</td>
+                                <td class="py-3 px-4">{{ job.min_experience_years }} yrs</td>
+                                <td class="py-3 px-4 text-right space-x-1">
+                                    <button @click="activeSpace = 'screener'; selectedJobId = {{ job.id }}; rankCandidates();" class="bg-blue-50 hover:bg-blue-100 text-blue-700 text-xs px-3 py-1.5 rounded-lg font-medium border border-blue-200 transition-colors">
+                                        Screen & Rank
                                     </button>
                                 </td>
                             </tr>
                             {% endfor %}
                         {% else %}
                             <tr>
-                                <td colspan="6" class="py-8 text-center text-slate-500">No candidates found. Upload resumes in the Upload tab.</td>
+                                <td colspan="5" class="py-8 text-center text-slate-500">No job openings created yet.</td>
                             </tr>
                         {% endif %}
                     </tbody>
@@ -230,165 +231,175 @@
         </div>
     </div>
 
-    <!-- ================= TAB 2: JOB DESCRIPTIONS ================= -->
-    <div x-show="activeTab === 'jobs'" class="space-y-6">
-        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
-            <!-- Create Job Form -->
-            <div class="bg-slate-850 p-6 rounded-xl border border-slate-800 shadow-xl lg:col-span-1">
-                <h2 class="text-lg font-semibold text-white mb-4">Post New Job Description</h2>
-                <form action="/jobs" method="POST" class="space-y-4">
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Job Title *</label>
-                        <input type="text" name="title" required placeholder="e.g. Senior AI Engineer" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Department</label>
-                        <input type="text" name="department" placeholder="e.g. Engineering" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Job Description Text *</label>
-                        <textarea name="description" rows="4" required placeholder="Enter detailed job description, responsibilities, and requirements..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"></textarea>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Required Skills (Comma-separated)</label>
-                        <input type="text" name="required_skills" placeholder="Python, FastAPI, Machine Learning, SQL" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-                        <span class="text-[11px] text-slate-500 mt-1 block">Leave blank to auto-extract skills using NLP.</span>
-                    </div>
-                    <div>
-                        <label class="block text-xs font-medium text-slate-400 mb-1">Min Experience Years</label>
-                        <input type="number" step="0.5" name="min_experience_years" value="2.0" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-                    </div>
-                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2.5 rounded-lg text-sm transition-colors shadow-lg shadow-emerald-900/20">
-                        Create Job Opening
-                    </button>
-                </form>
+    <!-- ================= SPACE 2: BATCH RESUME PARSER ================= -->
+    <div x-show="activeSpace === 'upload'" class="bg-white border border-slate-200 rounded-2xl p-8 shadow-sm max-w-2xl mx-auto space-y-6 text-center" x-cloak>
+        <div>
+            <h2 class="text-xl font-bold text-slate-900">Batch Resume Parser & Intake</h2>
+            <p class="text-sm text-slate-600 mt-1">Upload multiple PDF or DOCX candidate resumes. Our NLP parser automatically extracts skills, experience years, and education.</p>
+        </div>
+
+        <form action="/upload" method="POST" enctype="multipart/form-data" class="space-y-6">
+            <div class="border-2 border-dashed border-slate-300 hover:border-blue-500 rounded-2xl p-8 transition-colors bg-slate-50">
+                <svg class="w-12 h-12 text-slate-400 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                <label class="block text-sm font-medium text-slate-700 cursor-pointer">
+                    <span class="text-blue-600 font-semibold hover:underline">Browse resume files</span> or drag and drop
+                    <input type="file" name="files" multiple accept=".pdf,.docx" required class="hidden">
+                </label>
+                <p class="text-xs text-slate-500 mt-2">Supported formats: PDF, DOCX (Max 10MB each)</p>
             </div>
 
-            <!-- Job List Table -->
-            <div class="bg-slate-850 p-6 rounded-xl border border-slate-800 shadow-xl lg:col-span-2">
-                <h2 class="text-lg font-semibold text-white mb-4">Active Job Vacancies</h2>
-                <div class="overflow-x-auto">
-                    <table class="w-full text-left border-collapse">
-                        <thead>
-                            <tr class="bg-slate-800/60 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-800">
-                                <th class="py-3 px-4 font-semibold">Title</th>
-                                <th class="py-3 px-4 font-semibold">Department</th>
-                                <th class="py-3 px-4 font-semibold">Required Skills</th>
-                                <th class="py-3 px-4 font-semibold">Min Exp</th>
-                                <th class="py-3 px-4 font-semibold text-right">Quick Actions</th>
-                            </tr>
-                        </thead>
-                        <tbody class="divide-y divide-slate-800 text-sm text-slate-300">
-                            {% if jobs %}
-                                {% for job in jobs %}
-                                <tr class="hover:bg-slate-800/30 transition-colors">
-                                    <td class="py-3 px-4 font-medium text-white">{{ job.title }}</td>
-                                    <td class="py-3 px-4 text-slate-400">{{ job.department or 'N/A' }}</td>
-                                    <td class="py-3 px-4 max-w-xs truncate text-xs text-emerald-400">{{ job.required_skills }}</td>
-                                    <td class="py-3 px-4">{{ job.min_experience_years }} yrs</td>
-                                    <td class="py-3 px-4 text-right space-x-1">
-                                        <button @click="activeTab = 'screener'; selectedJobId = {{ job.id }}; rankCandidates();" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 text-xs px-2.5 py-1 rounded border border-emerald-500/30 transition-colors">
-                                            Screen & Rank
-                                        </button>
-                                        <a href="/api/v1/export/excel/{{ job.id }}" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded border border-slate-700 transition-colors inline-block">
-                                            Excel
-                                        </a>
-                                        <a href="/api/v1/export/csv/{{ job.id }}" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded border border-slate-700 transition-colors inline-block">
-                                            CSV
-                                        </a>
-                                    </td>
-                                </tr>
-                                {% endfor %}
-                            {% else %}
-                                <tr>
-                                    <td colspan="5" class="py-8 text-center text-slate-500">No job descriptions posted yet. Use the form to create one.</td>
-                                </tr>
-                            {% endif %}
-                        </tbody>
-                    </table>
-                </div>
-            </div>
+            <button type="submit" class="w-full bg-blue-600 hover:bg-blue-700 text-white font-medium py-3 rounded-xl text-sm transition-colors shadow">
+                Upload & Parse Resumes
+            </button>
+        </form>
+    </div>
+
+    <!-- ================= SPACE 3: CANDIDATE POOL & LIFECYCLE ================= -->
+    <div x-show="activeSpace === 'candidates'" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4" x-cloak>
+        <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+            <h2 class="text-lg font-bold text-slate-900">Candidate Talent Pool & Lifecycle Management</h2>
+            <button @click="activeSpace = 'upload'" class="bg-blue-600 hover:bg-blue-700 text-white text-xs font-medium px-4 py-2 rounded-xl transition-colors shadow">
+                + Upload Resumes
+            </button>
+        </div>
+
+        <div class="overflow-x-auto">
+            <table class="w-full text-left border-collapse">
+                <thead>
+                    <tr class="bg-slate-100 text-slate-600 text-xs uppercase font-semibold border-b border-slate-200">
+                        <th class="py-3 px-4">Candidate Name</th>
+                        <th class="py-3 px-4">Email</th>
+                        <th class="py-3 px-4">Extracted Skills</th>
+                        <th class="py-3 px-4">Experience</th>
+                        <th class="py-3 px-4">Status</th>
+                        <th class="py-3 px-4 text-right">Actions</th>
+                    </tr>
+                </thead>
+                <tbody class="divide-y divide-slate-200 text-sm text-slate-700">
+                    {% if candidates %}
+                        {% for cand in candidates %}
+                        <tr class="hover:bg-slate-50 transition-colors">
+                            <td class="py-3 px-4 font-semibold text-slate-900">
+                                <button @click="openBreakdown({{ cand.id }})" class="hover:text-blue-600 text-left underline decoration-dotted transition-colors">
+                                    {{ cand.full_name }}
+                                </button>
+                            </td>
+                            <td class="py-3 px-4 text-slate-600">{{ cand.email }}</td>
+                            <td class="py-3 px-4 max-w-xs truncate text-xs text-slate-600">
+                                {% set latest_ext = cand.resumes[0].extraction if cand.resumes and cand.resumes[0].extraction else none %}
+                                {% if latest_ext and latest_ext.parsed_skills %}
+                                    <span class="bg-slate-100 text-blue-600 px-2 py-1 rounded border border-slate-200">{{ latest_ext.parsed_skills }}</span>
+                                {% else %}
+                                    <span class="text-slate-400">None</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 px-4">
+                                {% if latest_ext %}
+                                    <span class="font-semibold text-slate-900">{{ latest_ext.experience_years }} yrs</span>
+                                {% else %}
+                                    <span>0 yrs</span>
+                                {% endif %}
+                            </td>
+                            <td class="py-3 px-4">
+                                <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold
+                                    {% if cand.status.value == 'shortlisted' %} bg-emerald-100 text-emerald-800 border border-emerald-300
+                                    {% elif cand.status.value == 'rejected' %} bg-red-100 text-red-800 border border-red-300
+                                    {% else %} bg-amber-100 text-amber-800 border border-amber-300 {% endif %}">
+                                    {{ cand.status.value | upper }}
+                                </span>
+                            </td>
+                            <td class="py-3 px-4 text-right space-x-2">
+                                <select @change="updateStatus({{ cand.id }}, $event.target.value)" class="bg-slate-50 text-xs text-slate-800 rounded-lg px-2.5 py-1.5 border border-slate-300 focus:outline-none focus:border-blue-600">
+                                    <option value="" disabled selected>Change Status</option>
+                                    <option value="pending">Pending</option>
+                                    <option value="shortlisted">Shortlist</option>
+                                    <option value="rejected">Reject</option>
+                                    <option value="on_hold">On-Hold</option>
+                                </select>
+                                <button @click="openBreakdown({{ cand.id }})" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3 py-1.5 rounded-lg font-medium border border-slate-300 transition-colors">
+                                    Breakdown
+                                </button>
+                            </td>
+                        </tr>
+                        {% endfor %}
+                    {% else %}
+                        <tr>
+                            <td colspan="6" class="py-8 text-center text-slate-500">No candidates available. Use Space 2 to upload resumes.</td>
+                        </tr>
+                    {% endif %}
+                </tbody>
+            </table>
         </div>
     </div>
 
-    <!-- ================= TAB 3: AI SCREENING & RANKING ENGINE ================= -->
-    <div x-show="activeTab === 'screener'" class="space-y-6">
-        <div class="bg-slate-850 p-6 rounded-xl border border-slate-800 shadow-xl space-y-4">
-            <h2 class="text-lg font-semibold text-white">Live AI Match Scoring & Ranking Engine</h2>
-            <p class="text-sm text-slate-400">Select an active job vacancy to evaluate and rank all candidate resumes instantly using TF-IDF similarity, skill matching, and experience verification.</p>
+    <!-- ================= SPACE 4: AI SCREENING & RANKING ENGINE ================= -->
+    <div x-show="activeSpace === 'screener'" class="space-y-6" x-cloak>
+        <div class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-4">
+            <h2 class="text-lg font-bold text-slate-900">AI Screening & Candidate Ranking Engine</h2>
+            <p class="text-sm text-slate-600">Select a job vacancy to compute composite match scores (TF-IDF similarity + skills + experience) across all candidates.</p>
             
             <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4">
                 <div class="w-full sm:w-96">
-                    <label class="block text-xs font-medium text-slate-400 mb-1">Select Target Job Opening</label>
-                    <select x-model="selectedJobId" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
-                        <option value="" disabled selected>-- Choose Job Position --</option>
+                    <label class="block text-xs font-semibold text-slate-700 mb-1">Select Job Position</label>
+                    <select x-model="selectedJobId" class="w-full bg-slate-50 border border-slate-300 rounded-xl px-3.5 py-2 text-sm text-slate-900 focus:outline-none focus:border-blue-600">
+                        <option value="" disabled selected>-- Choose Job Opening --</option>
                         {% for job in jobs %}
                         <option value="{{ job.id }}">{{ job.title }} {% if job.department %}({{ job.department }}){% endif %}</option>
                         {% endfor %}
                     </select>
                 </div>
-                <div class="sm:self-end flex space-x-3">
-                    <button @click="rankCandidates()" :disabled="isRanking" class="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-medium px-5 py-2 rounded-lg text-sm transition-colors shadow-lg shadow-emerald-900/20 flex items-center space-x-2">
+                <div class="sm:self-end">
+                    <button @click="rankCandidates()" :disabled="isRanking" class="bg-blue-600 hover:bg-blue-700 disabled:opacity-50 text-white font-medium px-5 py-2.5 rounded-xl text-sm transition-colors shadow flex items-center space-x-2">
                         <svg x-show="isRanking" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                        <span x-text="isRanking ? 'Ranking Candidates...' : 'Rank & Match Candidates'"></span>
+                        <span x-text="isRanking ? 'Running AI Engine...' : 'Run Ranking & Match'"></span>
                     </button>
-                    <template x-if="selectedJobId">
-                        <div class="flex space-x-2">
-                            <a :href="`/api/v1/export/excel/${selectedJobId}`" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 text-sm font-medium px-4 py-2 rounded-lg border border-slate-700 transition-colors flex items-center space-x-1">
-                                <span>Export Excel</span>
-                            </a>
-                            <a :href="`/api/v1/export/csv/${selectedJobId}`" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium px-4 py-2 rounded-lg border border-slate-700 transition-colors flex items-center space-x-1">
-                                <span>Export CSV</span>
-                            </a>
-                        </div>
-                    </template>
                 </div>
             </div>
 
             <template x-if="rankingError">
-                <div class="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-lg text-sm" x-text="rankingError"></div>
+                <div class="bg-red-50 border border-red-200 text-red-700 p-3 rounded-xl text-sm" x-text="rankingError"></div>
             </template>
         </div>
 
         <!-- Ranking Results Table -->
-        <div class="bg-slate-850 rounded-xl border border-slate-800 overflow-hidden shadow-xl" x-show="rankingResults.length > 0">
-            <div class="p-4 bg-slate-800/60 border-b border-slate-800 flex justify-between items-center">
-                <h3 class="font-semibold text-white text-sm">Screening & Ranking Results</h3>
-                <span class="text-xs text-emerald-400" x-text="`${rankingResults.length} Candidates Evaluated`"></span>
+        <div class="bg-white border border-slate-200 rounded-2xl shadow-sm overflow-hidden" x-show="rankingResults.length > 0">
+            <div class="p-4 bg-slate-100 border-b border-slate-200 flex justify-between items-center">
+                <h3 class="font-bold text-slate-900 text-sm">Ranked Candidate Results</h3>
+                <span class="text-xs font-semibold text-blue-600" x-text="`${rankingResults.length} Candidates Screened`"></span>
             </div>
             <div class="overflow-x-auto">
                 <table class="w-full text-left border-collapse">
                     <thead>
-                        <tr class="bg-slate-800/40 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-800">
-                            <th class="py-3 px-4 font-semibold">Rank & Candidate</th>
-                            <th class="py-3 px-4 font-semibold">Composite Score</th>
-                            <th class="py-3 px-4 font-semibold">Skill Match</th>
-                            <th class="py-3 px-4 font-semibold">Experience Match</th>
-                            <th class="py-3 px-4 font-semibold">Semantic Match</th>
-                            <th class="py-3 px-4 font-semibold text-right">Details</th>
+                        <tr class="bg-slate-50 text-slate-600 text-xs uppercase font-semibold border-b border-slate-200">
+                            <th class="py-3 px-4">Rank & Candidate</th>
+                            <th class="py-3 px-4">Composite Score</th>
+                            <th class="py-3 px-4">Skill Match</th>
+                            <th class="py-3 px-4">Experience</th>
+                            <th class="py-3 px-4">Semantic TF-IDF</th>
+                            <th class="py-3 px-4 text-right">Breakdown</th>
                         </tr>
                     </thead>
-                    <tbody class="divide-y divide-slate-800 text-sm text-slate-300">
+                    <tbody class="divide-y divide-slate-200 text-sm text-slate-700">
                         <template x-for="(res, index) in rankingResults" :key="res.id">
-                            <tr class="hover:bg-slate-800/30 transition-colors">
+                            <tr class="hover:bg-slate-50 transition-colors">
                                 <td class="py-3 px-4">
                                     <div class="flex items-center space-x-3">
-                                        <span class="font-bold text-xs bg-slate-800 text-emerald-400 w-6 h-6 rounded-full flex items-center justify-center border border-slate-700" x-text="index + 1"></span>
+                                        <span class="font-bold text-xs bg-slate-200 text-slate-800 w-6 h-6 rounded-full flex items-center justify-center" x-text="index + 1"></span>
                                         <div>
-                                            <div class="font-medium text-white" x-text="res.candidate_name"></div>
-                                            <div class="text-xs text-slate-400" x-text="res.candidate_email"></div>
+                                            <div class="font-semibold text-slate-900" x-text="res.candidate_name"></div>
+                                            <div class="text-xs text-slate-500" x-text="res.candidate_email"></div>
                                         </div>
                                     </div>
                                 </td>
                                 <td class="py-3 px-4">
-                                    <span class="font-bold text-emerald-400 text-base" x-text="res.composite_score.toFixed(1) + '%'"></span>
+                                    <span class="font-bold text-blue-600 text-base" x-text="res.composite_score.toFixed(1) + '%'"></span>
                                 </td>
                                 <td class="py-3 px-4" x-text="res.skill_match_score.toFixed(1) + '%'"></td>
                                 <td class="py-3 px-4" x-text="res.experience_match_score.toFixed(1) + '%'"></td>
                                 <td class="py-3 px-4" x-text="res.semantic_score.toFixed(1) + '%'"></td>
                                 <td class="py-3 px-4 text-right">
-                                    <button @click="openBreakdown(res.candidate_id)" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs px-3 py-1.5 rounded border border-slate-700 transition-colors">
-                                        View Breakdown
+                                    <button @click="openBreakdown(res.candidate_id)" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs px-3 py-1.5 rounded-lg font-medium border border-slate-300 transition-colors">
+                                        View Details
                                     </button>
                                 </td>
                             </tr>
@@ -399,81 +410,120 @@
         </div>
     </div>
 
-    <!-- ================= TAB 4: BATCH UPLOAD RESUMES ================= -->
-    <div x-show="activeTab === 'upload'" class="space-y-6">
-        <div class="bg-slate-850 p-8 rounded-xl border border-slate-800 shadow-xl max-w-2xl mx-auto text-center space-y-6">
-            <div>
-                <h2 class="text-xl font-bold text-white">Batch Upload Resumes</h2>
-                <p class="text-sm text-slate-400 mt-1">Upload multiple candidate resumes in PDF or DOCX format. Automated NLP extraction will parse skills, experience, and education.</p>
-            </div>
+    <!-- ================= SPACE 5: ENTERPRISE REPORTING & EXPORT ================= -->
+    <div x-show="activeSpace === 'export'" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6" x-cloak>
+        <div>
+            <h2 class="text-lg font-bold text-slate-900">Enterprise Reporting & Export Center</h2>
+            <p class="text-sm text-slate-600 mt-1">Download professionally styled Excel multi-sheet workbooks or lightweight CSV reports for any job screening evaluation.</p>
+        </div>
 
-            <form action="/upload" method="POST" enctype="multipart/form-data" class="space-y-6">
-                <div class="border-2 border-dashed border-slate-700 hover:border-emerald-500 rounded-xl p-8 transition-colors bg-slate-900/50">
-                    <svg class="w-12 h-12 text-slate-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
-                    <label class="block text-sm font-medium text-slate-300 cursor-pointer">
-                        <span class="text-emerald-400 hover:underline">Choose resume files</span> or drag and drop here
-                        <input type="file" name="files" multiple accept=".pdf,.docx" required class="hidden">
-                    </label>
-                    <p class="text-xs text-slate-500 mt-2">PDF and DOCX up to 10MB each</p>
+        <div class="grid grid-cols-1 md:grid-cols-2 gap-6">
+            {% if jobs %}
+                {% for job in jobs %}
+                <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-3 flex flex-col justify-between">
+                    <div>
+                        <div class="font-bold text-slate-900 text-base">{{ job.title }}</div>
+                        <div class="text-xs text-slate-500 mt-1">Department: {{ job.department or 'General' }} | Min Exp: {{ job.min_experience_years }} yrs</div>
+                        <div class="text-xs text-blue-600 mt-2 truncate">Required Skills: {{ job.required_skills }}</div>
+                    </div>
+                    <div class="flex space-x-3 pt-3 border-t border-slate-200">
+                        <a href="/api/v1/export/excel/{{ job.id }}" class="flex-1 bg-blue-600 hover:bg-blue-700 text-white text-xs font-semibold py-2 px-3 rounded-lg text-center transition-colors shadow">
+                            Download Excel Report
+                        </a>
+                        <a href="/api/v1/export/csv/{{ job.id }}" class="flex-1 bg-slate-200 hover:bg-slate-300 text-slate-800 text-xs font-semibold py-2 px-3 rounded-lg text-center transition-colors">
+                            Download CSV Report
+                        </a>
+                    </div>
                 </div>
+                {% endfor %}
+            {% else %}
+                <div class="col-span-2 py-8 text-center text-slate-500">No job openings found. Create a job opening in Space 1 to enable reporting exports.</div>
+            {% endif %}
+        </div>
+    </div>
 
-                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-3 rounded-xl text-sm transition-colors shadow-lg shadow-emerald-900/20">
-                    Upload & Process Resumes
-                </button>
-            </form>
+    <!-- ================= SPACE 6: SYSTEM HEALTH & PERFORMANCE ================= -->
+    <div x-show="activeSpace === 'health'" class="bg-white border border-slate-200 rounded-2xl p-6 shadow-sm space-y-6" x-cloak>
+        <div class="flex justify-between items-center border-b border-slate-200 pb-3">
+            <div>
+                <h2 class="text-lg font-bold text-slate-900">System Health & Performance Metrics</h2>
+                <p class="text-sm text-slate-600 mt-1">Real-time status diagnostics of database connection, async engine, and FastAPI services.</p>
+            </div>
+            <button @click="checkSystemHealth()" class="bg-slate-100 hover:bg-slate-200 text-slate-700 text-xs font-semibold px-4 py-2 rounded-xl border border-slate-300 transition-colors">
+                Refresh Status
+            </button>
+        </div>
+
+        <div class="grid grid-cols-1 sm:grid-cols-3 gap-5">
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-2">
+                <div class="text-xs font-semibold text-slate-500 uppercase">Application Status</div>
+                <div class="text-xl font-bold text-emerald-600 flex items-center space-x-2">
+                    <span class="w-3 h-3 bg-emerald-500 rounded-full animate-pulse"></span>
+                    <span x-text="healthData ? healthData.status : 'Operational'">Operational</span>
+                </div>
+                <div class="text-xs text-slate-600" x-text="healthData ? 'App: ' + healthData.app : ''"></div>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-2">
+                <div class="text-xs font-semibold text-slate-500 uppercase">Environment</div>
+                <div class="text-xl font-bold text-slate-900" x-text="healthData ? healthData.environment : 'development'">development</div>
+                <div class="text-xs text-slate-600">FastAPI Async Engine</div>
+            </div>
+            <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-2">
+                <div class="text-xs font-semibold text-slate-500 uppercase">Database Storage</div>
+                <div class="text-xl font-bold text-blue-600">Connected</div>
+                <div class="text-xs text-slate-600">SQLite / PostgreSQL Async</div>
+            </div>
         </div>
     </div>
 
     <!-- ================= SCORE BREAKDOWN MODAL ================= -->
-    <div x-show="breakdownModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" x-cloak>
-        <div @click.away="breakdownModalOpen = false" class="bg-slate-850 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
-            <div class="flex justify-between items-center pb-4 border-b border-slate-800">
-                <h3 class="text-lg font-bold text-white flex items-center space-x-2">
-                    <span>Candidate Score Breakdown</span>
-                </h3>
-                <button @click="breakdownModalOpen = false" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+    <div x-show="breakdownModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-slate-900/60 backdrop-blur-sm p-4" x-cloak>
+        <div @click.away="breakdownModalOpen = false" class="bg-white border border-slate-200 rounded-2xl max-w-2xl w-full p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center border-b border-slate-200 pb-4">
+                <h3 class="text-lg font-bold text-slate-900">Candidate Score Breakdown Analysis</h3>
+                <button @click="breakdownModalOpen = false" class="text-slate-500 hover:text-slate-900 text-xl font-bold">&times;</button>
             </div>
 
-            <div x-show="loadingBreakdown" class="py-12 text-center text-slate-400">
-                <svg class="animate-spin h-8 w-8 text-emerald-500 mx-auto mb-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
-                <span>Loading analysis breakdown...</span>
+            <div x-show="loadingBreakdown" class="py-12 text-center text-slate-500">
+                <svg class="animate-spin h-8 w-8 text-blue-600 mx-auto mb-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <span>Fetching score breakdown...</span>
             </div>
 
             <div x-show="!loadingBreakdown && breakdownData" class="space-y-6">
                 <template x-for="bd in breakdownData.breakdowns" :key="bd.match_id">
-                    <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 space-y-4">
+                    <div class="bg-slate-50 border border-slate-200 rounded-xl p-5 space-y-4">
                         <div class="flex justify-between items-center">
-                            <span class="font-semibold text-white text-base" x-text="bd.job_title"></span>
-                            <span class="text-xl font-bold text-emerald-400" x-text="bd.composite_score.toFixed(1) + '%'"><span class="text-xs text-slate-400 font-normal"> Composite</span></span>
+                            <span class="font-bold text-slate-900 text-base" x-text="bd.job_title"></span>
+                            <span class="text-xl font-bold text-blue-600" x-text="bd.composite_score.toFixed(1) + '%'"><span class="text-xs text-slate-500 font-normal"> Composite</span></span>
                         </div>
 
                         <div class="grid grid-cols-3 gap-3 text-center">
-                            <div class="bg-slate-850 p-3 rounded-lg border border-slate-800">
-                                <div class="text-xs text-slate-400">Skill Match</div>
-                                <div class="text-lg font-bold text-white mt-1" x-text="bd.skill_match_score.toFixed(1) + '%'"></div>
+                            <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
+                                <div class="text-xs text-slate-500">Skill Match</div>
+                                <div class="text-lg font-bold text-slate-900 mt-1" x-text="bd.skill_match_score.toFixed(1) + '%'"></div>
                             </div>
-                            <div class="bg-slate-850 p-3 rounded-lg border border-slate-800">
-                                <div class="text-xs text-slate-400">Experience</div>
-                                <div class="text-lg font-bold text-white mt-1" x-text="bd.experience_match_score.toFixed(1) + '%'"></div>
+                            <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
+                                <div class="text-xs text-slate-500">Experience Match</div>
+                                <div class="text-lg font-bold text-slate-900 mt-1" x-text="bd.experience_match_score.toFixed(1) + '%'"></div>
                             </div>
-                            <div class="bg-slate-850 p-3 rounded-lg border border-slate-800">
-                                <div class="text-xs text-slate-400">TF-IDF Semantic</div>
-                                <div class="text-lg font-bold text-white mt-1" x-text="bd.semantic_score.toFixed(1) + '%'"></div>
+                            <div class="bg-white border border-slate-200 rounded-xl p-3 shadow-sm">
+                                <div class="text-xs text-slate-500">TF-IDF Semantic</div>
+                                <div class="text-lg font-bold text-slate-900 mt-1" x-text="bd.semantic_score.toFixed(1) + '%'"></div>
                             </div>
                         </div>
 
                         <div class="space-y-2">
-                            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Skill Match Details</div>
+                            <div class="text-xs font-semibold text-slate-500 uppercase">Skill Match Breakdown</div>
                             <div class="flex flex-wrap gap-2">
                                 <template x-for="ss in bd.skill_scores" :key="ss.skill_name">
-                                    <span class="text-xs px-2.5 py-1 rounded-full font-medium"
-                                          :class="ss.is_matched ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/10 text-red-400 border border-red-500/30'"
+                                    <span class="text-xs px-2.5 py-1 rounded-full font-semibold"
+                                          :class="ss.is_matched ? 'bg-emerald-100 text-emerald-800 border border-emerald-300' : 'bg-red-100 text-red-800 border border-red-300'"
                                           x-text="ss.skill_name + (ss.is_matched ? ' ✓' : ' ✗')"></span>
                                 </template>
                             </div>
                         </div>
 
-                        <div class="text-xs text-slate-400 pt-2 border-t border-slate-800 flex justify-between">
+                        <div class="text-xs text-slate-500 pt-2 border-t border-slate-200 flex justify-between">
                             <span x-text="bd.summary_notes"></span>
                             <span x-text="new Date(bd.evaluated_at).toLocaleString()"></span>
                         </div>
@@ -482,7 +532,7 @@
             </div>
 
             <div class="flex justify-end pt-2">
-                <button @click="breakdownModalOpen = false" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-lg text-sm transition-colors border border-slate-700">
+                <button @click="breakdownModalOpen = false" class="bg-slate-200 hover:bg-slate-300 text-slate-800 px-4 py-2 rounded-xl text-sm transition-colors">
                     Close
                 </button>
             </div>
