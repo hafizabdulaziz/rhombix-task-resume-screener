@@ -11,6 +11,7 @@ from src.models.job import JobDescription
 from src.services.parser import ResumeParser
 from src.services.storage import StorageManager
 from src.services.nlp import NLPTokenizer
+from src.core.exceptions import AppError
 import structlog
 
 logger = structlog.get_logger()
@@ -20,14 +21,19 @@ router = APIRouter(tags=["Web UI"])
 
 @router.get("/", response_class=HTMLResponse)
 async def dashboard_view(request: Request, db: AsyncSession = Depends(get_db)):
-    cand_count_res = await db.execute(select(func.count(Candidate.id)))
-    total_candidates = cand_count_res.scalar() or 0
+    try:
+        cand_count_res = await db.execute(select(func.count(Candidate.id)))
+        total_candidates = cand_count_res.scalar() or 0
 
-    shortlisted_res = await db.execute(select(func.count(Candidate.id)).where(Candidate.status == CandidateStatus.SHORTLISTED))
-    shortlisted_count = shortlisted_res.scalar() or 0
+        shortlisted_res = await db.execute(select(func.count(Candidate.id)).where(Candidate.status == CandidateStatus.SHORTLISTED))
+        shortlisted_count = shortlisted_res.scalar() or 0
 
-    jobs_count_res = await db.execute(select(func.count(JobDescription.id)))
-    total_jobs = jobs_count_res.scalar() or 0
+        jobs_count_res = await db.execute(select(func.count(JobDescription.id)))
+        total_jobs = jobs_count_res.scalar() or 0
+    except Exception:
+        total_candidates = 0
+        shortlisted_count = 0
+        total_jobs = 0
 
     return templates.TemplateResponse(request, "dashboard.html", {
         "total_candidates": total_candidates,
@@ -87,17 +93,21 @@ async def upload_resumes_form(
             raise AppError("Uploaded file is empty.", status_code=400)
         if len(file_bytes) > 10 * 1024 * 1024:
             raise AppError("File size exceeds 10MB limit.", status_code=400)
-        if not (filename.endswith(".pdf") or filename.endswith(".docx")):
+        
+        file_type = "pdf"
+        if filename.endswith(".docx") or "docx" in mime_type:
+            file_type = "docx"
+        elif filename.endswith(".pdf") or "pdf" in mime_type:
+            file_type = "pdf"
+        else:
             raise AppError("Only PDF and DOCX files are allowed.", status_code=400)
 
         # Save file
         saved_path = await StorageManager.save_file(file_bytes, filename)
 
-        # Extract text
-        if "pdf" in mime_type.lower() or filename.endswith(".pdf"):
-            raw_text = ResumeParser.extract_text_from_pdf(file_bytes)
-        else:
-            raw_text = ResumeParser.extract_text_from_docx(file_bytes)
+        # Extract text using ResumeParser.parse_document
+        parsed_data = await ResumeParser.parse_document(file_type, file_bytes)
+        raw_text = parsed_data["text"]
 
         skills = NLPTokenizer.extract_skills(raw_text)
         exp_years = NLPTokenizer.extract_experience_years(raw_text)

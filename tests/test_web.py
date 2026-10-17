@@ -17,3 +17,10 @@ def test_web_upload_page():
     response = client.get("/upload")
     assert response.status_code == 200
     assert "Batch Resume Upload & Parsing" in response.text
+
+def test_web_upload_invalid_file():
+    # Test uploading an invalid file format (e.g. invalid signature)
+    bad_bytes = b"NOTAPDFCONTENT"
+    files = [("files", ("test_resume.pdf", bad_bytes, "application/pdf"))]
+    response = client.post("/upload", files=files, follow_redirects=False)
+    assert response.status_code == 400
