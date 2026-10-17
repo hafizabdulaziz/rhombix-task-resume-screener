@@ -10,6 +10,10 @@ from src.routers.jobs import router as jobs_router
 from src.routers.screener import router as screener_router
 from src.routers.export import router as export_router
 from src.routers.web import router as web_router
+from src.db.session import engine
+from src.db.base import Base
+from src.models.job import JobDescription, MatchResult, SkillScore
+from src.models.candidate import Candidate, ResumeFile, ExtractionData
 
 # Configure structured logging
 structlog.configure(
@@ -28,7 +32,14 @@ logger = structlog.get_logger()
 
 @asynccontextmanager
 async def lifespan(app: FastAPI):
-    # Startup lifecycle events
+    # Startup lifecycle events: Automatically ensure database tables are created
+    try:
+        async with engine.begin() as conn:
+            await conn.run_sync(Base.metadata.create_all)
+        logger.info("database_tables_ensured_created")
+    except Exception as e:
+        logger.error("database_startup_creation_failed", error=str(e))
+
     logger.info("application_startup", app_name=settings.app_name, environment=settings.environment)
     yield
     # Shutdown lifecycle events
