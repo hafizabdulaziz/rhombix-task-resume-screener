@@ -14,7 +14,7 @@ import structlog
 
 logger = structlog.get_logger()
 
-router = APIRouter(prefix="/api/v1/export", tags=["Report Export"])
+router = APIRouter(prefix="/api/v1/export", tags=["Enterprise Excel & CSV Export Engine"])
 
 async def get_job_and_results(job_id: int, db: AsyncSession):
     job_res = await db.execute(select(JobDescription).where(JobDescription.id == job_id))

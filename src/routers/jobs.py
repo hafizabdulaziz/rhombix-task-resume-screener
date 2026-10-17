@@ -13,7 +13,7 @@ import structlog
 
 logger = structlog.get_logger()
 
-router = APIRouter(prefix="/api/v1/jobs", tags=["Jobs"])
+router = APIRouter(prefix="/api/v1/jobs", tags=["Jobs & Vacancies Management"])
 
 class JobCreate(BaseModel):
     title: str = Field(..., min_length=2, max_length=255)

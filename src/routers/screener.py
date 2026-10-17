@@ -17,7 +17,7 @@ import structlog
 
 logger = structlog.get_logger()
 
-router = APIRouter(prefix="/api/v1/screener", tags=["Screener & Ranking"])
+router = APIRouter(prefix="/api/v1/screener")
 
 class RankRequest(BaseModel):
     job_id: int
@@ -49,7 +49,7 @@ class MatchResultResponse(BaseModel):
 class StatusUpdateRequest(BaseModel):
     status: CandidateStatus
 
-@router.post("/rank", response_model=List[MatchResultResponse], status_code=status.HTTP_200_OK)
+@router.post("/rank", response_model=List[MatchResultResponse], status_code=status.HTTP_200_OK, tags=["AI Screening, Matching & Ranking Engine"])
 async def rank_candidates(rank_req: RankRequest, db: AsyncSession = Depends(get_db)):
     """
     Executes batch candidate screening and scoring against a specified Job Description.
@@ -160,7 +160,7 @@ async def rank_candidates(rank_req: RankRequest, db: AsyncSession = Depends(get_
     logger.info("candidates_ranked", job_id=job.id, total_screened=len(results))
     return results
 
-@router.get("/results/{job_id}", response_model=List[MatchResultResponse])
+@router.get("/results/{job_id}", response_model=List[MatchResultResponse], tags=["AI Screening, Matching & Ranking Engine"])
 async def get_job_rankings(
     job_id: int,
     min_score: float = Query(0.0, ge=0.0, le=100.0),
@@ -206,7 +206,7 @@ async def get_job_rankings(
 
     return response_items
 
-@router.get("/candidate/{candidate_id}/breakdown", status_code=status.HTTP_200_OK)
+@router.get("/candidate/{candidate_id}/breakdown", status_code=status.HTTP_200_OK, tags=["Candidate Status & Score Breakdown"])
 async def get_candidate_score_breakdown(candidate_id: int, db: AsyncSession = Depends(get_db)):
     """
     Retrieves detailed score breakdown for a specific candidate across all applied/matched jobs.
@@ -243,7 +243,7 @@ async def get_candidate_score_breakdown(candidate_id: int, db: AsyncSession = De
         })
     return {"candidate_id": candidate_id, "breakdowns": breakdowns}
 
-@router.patch("/candidates/{candidate_id}/status", status_code=status.HTTP_200_OK)
+@router.patch("/candidates/{candidate_id}/status", status_code=status.HTTP_200_OK, tags=["Candidate Status & Score Breakdown"])
 async def update_candidate_status(candidate_id: int, status_req: StatusUpdateRequest, db: AsyncSession = Depends(get_db)):
     """
     Updates the shortlisting status lifecycle of a candidate using CandidateLifecycleManager.

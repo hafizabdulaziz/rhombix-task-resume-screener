@@ -40,6 +40,9 @@ def test_e2e_screening_flow():
     assert "Alice Smith" in csv_str
 
     # 3. Test Web Endpoints Health & Pages
-    resp_dash = client.get("/")
-    assert resp_dash.status_code == 200
-    assert "Premium Silver Enterprise Portal" in resp_dash.text
+    resp_dash = client.get("/", follow_redirects=False)
+    assert resp_dash.status_code == 303
+    assert resp_dash.headers["location"] == "/docs"
+
+    resp_docs = client.get("/docs")
+    assert resp_docs.status_code == 200
