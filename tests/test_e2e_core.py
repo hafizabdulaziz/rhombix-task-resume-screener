@@ -42,12 +42,10 @@ def test_e2e_screening_flow():
     # 3. Test Web Endpoints Health & Pages
     resp_dash = client.get("/")
     assert resp_dash.status_code == 200
-    assert "Recruitment Intelligence Dashboard" in resp_dash.text
+    assert "Master Recruitment Intelligence Portal" in resp_dash.text
 
-    resp_jobs = client.get("/jobs")
-    assert resp_jobs.status_code == 200
-    assert "Job Descriptions & Vacancies" in resp_jobs.text
+    resp_jobs = client.get("/jobs", follow_redirects=False)
+    assert resp_jobs.status_code == 303
 
-    resp_upload = client.get("/upload")
-    assert resp_upload.status_code == 200
-    assert "Batch Resume Upload" in resp_upload.text
+    resp_upload = client.get("/upload", follow_redirects=False)
+    assert resp_upload.status_code == 303

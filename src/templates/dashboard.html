@@ -1,88 +1,490 @@
 {% extends "base.html" %}
 
-{% block title %}Dashboard - Rhombix ResumeScreener Pro{% endblock %}
+{% block title %}Master Enterprise Portal - Rhombix ResumeScreener Pro{% endblock %}
 
 {% block content %}
-<div class="space-y-6">
+<div class="space-y-6" x-data="{ 
+    activeTab: '{{ active_tab }}' || 'candidates',
+    selectedJobId: null,
+    rankingResults: [],
+    isRanking: false,
+    rankingError: null,
+    breakdownModalOpen: false,
+    breakdownData: null,
+    loadingBreakdown: false,
+    
+    async rankCandidates() {
+        if (!this.selectedJobId) {
+            alert('Please select a Job Description first.');
+            return;
+        }
+        this.isRanking = true;
+        this.rankingError = null;
+        try {
+            const response = await fetch('/api/v1/screener/rank', {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ job_id: parseInt(this.selectedJobId) })
+            });
+            if (!response.ok) throw new Error('Failed to rank candidates');
+            this.rankingResults = await response.json();
+        } catch (err) {
+            this.rankingError = err.message;
+        } finally {
+            this.isRanking = false;
+        }
+    },
+
+    async updateStatus(candidateId, newStatus) {
+        try {
+            const response = await fetch(`/api/v1/screener/candidates/${candidateId}/status`, {
+                method: 'PATCH',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({ status: newStatus })
+            });
+            if (!response.ok) throw new Error('Failed to update status');
+            window.location.reload();
+        } catch (err) {
+            alert('Error updating status: ' + err.message);
+        }
+    },
+
+    async openBreakdown(candidateId) {
+        this.breakdownModalOpen = true;
+        this.loadingBreakdown = true;
+        this.breakdownData = null;
+        try {
+            const response = await fetch(`/api/v1/screener/candidate/${candidateId}/breakdown`);
+            if (!response.ok) throw new Error('Failed to fetch score breakdown');
+            this.breakdownData = await response.json();
+        } catch (err) {
+            alert('Error fetching breakdown: ' + err.message);
+            this.breakdownModalOpen = false;
+        } finally {
+            this.loadingBreakdown = false;
+        }
+    }
+}">
+
+    <!-- Success / Error Banners -->
+    {% if success_message %}
+    <div class="bg-emerald-500/10 border border-emerald-500/30 text-emerald-400 px-4 py-3 rounded-xl flex items-center justify-between text-sm shadow-lg">
+        <div class="flex items-center space-x-2">
+            <svg class="w-5 h-5 text-emerald-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M5 13l4 4L19 7"/></svg>
+            <span class="font-medium">{{ success_message }}</span>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-emerald-400 hover:text-emerald-300">&times;</button>
+    </div>
+    {% endif %}
+
+    {% if error_message %}
+    <div class="bg-red-500/10 border border-red-500/30 text-red-400 px-4 py-3 rounded-xl flex items-center justify-between text-sm shadow-lg">
+        <div class="flex items-center space-x-2">
+            <svg class="w-5 h-5 text-red-400 flex-shrink-0" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M6 18L18 6M6 6l12 12"/></svg>
+            <span class="font-medium">{{ error_message }}</span>
+        </div>
+        <button onclick="this.parentElement.remove()" class="text-red-400 hover:text-red-300">&times;</button>
+    </div>
+    {% endif %}
+
+    <!-- Header & Metrics Grid -->
     <div class="flex flex-col md:flex-row md:items-center md:justify-between pb-6 border-b border-slate-800">
         <div>
-            <h1 class="text-2xl font-bold tracking-tight text-white">Recruitment Intelligence Dashboard</h1>
-            <p class="text-sm text-slate-400 mt-1">Overview of applicant pools, AI screening metrics, and job vacancies.</p>
-        </div>
-        <div class="mt-4 md:mt-0 flex space-x-3">
-            <a href="/upload" class="bg-emerald-600 hover:bg-emerald-500 text-white font-medium px-4 py-2 rounded-lg text-sm transition-colors shadow-lg shadow-emerald-900/20">
-                + Upload Resumes
-            </a>
-            <a href="/jobs" class="bg-slate-800 hover:bg-slate-700 text-slate-200 font-medium px-4 py-2 rounded-lg text-sm transition-colors border border-slate-700">
-                Manage Jobs
-            </a>
+            <h1 class="text-2xl font-bold tracking-tight text-white flex items-center space-x-2">
+                <span>Master Recruitment Intelligence Portal</span>
+                <span class="bg-emerald-500/20 text-emerald-400 text-xs px-2.5 py-0.5 rounded-full border border-emerald-500/30">Cyber-Dark Workspace</span>
+            </h1>
+            <p class="text-sm text-slate-400 mt-1">Unified command center for candidate pools, job vacancies, AI screening, and reporting.</p>
         </div>
     </div>
 
-    <!-- Metrics Grid -->
+    <!-- Quick Metrics Cards -->
     <div class="grid grid-cols-1 sm:grid-cols-2 lg:grid-cols-4 gap-5">
         <div class="bg-slate-850 p-6 rounded-xl border border-slate-800 shadow-lg">
             <div class="text-sm font-medium text-slate-400">Total Candidates</div>
             <div class="text-3xl font-bold text-white mt-2">{{ total_candidates }}</div>
-            <div class="text-xs text-emerald-400 mt-2 flex items-center">
-                <span>Active talent pipeline</span>
-            </div>
+            <div class="text-xs text-emerald-400 mt-2">Parsed & indexed resumes</div>
         </div>
         <div class="bg-slate-850 p-6 rounded-xl border border-slate-800 shadow-lg">
-            <div class="text-sm font-medium text-slate-400">Shortlisted Candidates</div>
+            <div class="text-sm font-medium text-slate-400">Shortlisted</div>
             <div class="text-3xl font-bold text-emerald-400 mt-2">{{ shortlisted_count }}</div>
-            <div class="text-xs text-slate-400 mt-2">Ready for interview</div>
+            <div class="text-xs text-slate-400 mt-2">Ready for interview stage</div>
         </div>
         <div class="bg-slate-850 p-6 rounded-xl border border-slate-800 shadow-lg">
-            <div class="text-sm font-medium text-slate-400">Active Job Openings</div>
+            <div class="text-sm font-medium text-slate-400">Job Openings</div>
             <div class="text-3xl font-bold text-white mt-2">{{ total_jobs }}</div>
-            <div class="text-xs text-slate-400 mt-2">Open roles across departments</div>
+            <div class="text-xs text-slate-400 mt-2">Active roles in system</div>
         </div>
         <div class="bg-slate-850 p-6 rounded-xl border border-slate-800 shadow-lg">
-            <div class="text-sm font-medium text-slate-400">System Accuracy</div>
-            <div class="text-3xl font-bold text-white mt-2">99.4%</div>
-            <div class="text-xs text-emerald-400 mt-2">Hybrid TF-IDF & Taxonomy Match</div>
+            <div class="text-sm font-medium text-slate-400">Screening Engine</div>
+            <div class="text-3xl font-bold text-emerald-400 mt-2">Active</div>
+            <div class="text-xs text-slate-400 mt-2">TF-IDF + Taxonomy Hybrid</div>
         </div>
     </div>
 
-    <!-- Quick Actions & Recent Activity -->
-    <div class="grid grid-cols-1 lg:grid-cols-3 gap-6 pt-4">
-        <div class="lg:col-span-2 bg-slate-850 p-6 rounded-xl border border-slate-800 shadow-lg">
-            <h2 class="text-lg font-semibold text-white mb-4">Quick Screening Guide</h2>
-            <div class="space-y-4 text-sm text-slate-300">
-                <div class="flex items-start space-x-3">
-                    <div class="bg-emerald-500/10 text-emerald-400 rounded-full w-6 h-6 flex items-center justify-center font-bold text-xs border border-emerald-500/20 flex-shrink-0">1</div>
-                    <div>Create a new Job Description with required skills and minimum experience criteria.</div>
-                </div>
-                <div class="flex items-start space-x-3">
-                    <div class="bg-emerald-500/10 text-emerald-400 rounded-full w-6 h-6 flex items-center justify-center font-bold text-xs border border-emerald-500/20 flex-shrink-0">2</div>
-                    <div>Upload batch candidate resumes in PDF or DOCX format. The parser automatically extracts text, skills, and experience.</div>
-                </div>
-                <div class="flex items-start space-x-3">
-                    <div class="bg-emerald-500/10 text-emerald-400 rounded-full w-6 h-6 flex items-center justify-center font-bold text-xs border border-emerald-500/20 flex-shrink-0">3</div>
-                    <div>Run the AI screening engine to compute 0-100% composite scores, review rankings, export reports, and dispatch notifications.</div>
+    <!-- Tab Navigation Bar -->
+    <div class="flex space-x-2 border-b border-slate-800 pt-2">
+        <button @click="activeTab = 'candidates'" 
+                :class="activeTab === 'candidates' ? 'border-emerald-500 text-emerald-400 bg-slate-800/50' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'"
+                class="px-5 py-3 font-medium text-sm border-b-2 rounded-t-xl transition-all flex items-center space-x-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M17 20h5v-2a3 3 0 00-5.356-1.857M17 20H7m10 0v-2c0-.656-.126-1.283-.356-1.857M7 20H2v-2a3 3 0 015.356-1.857M7 20v-2c0-.656.126-1.283.356-1.857m0 0a5.002 5.002 0 019.288 0M15 7a3 3 0 11-6 0 3 3 0 016 0zm6 3a2 2 0 11-4 0 2 2 0 014 0zM7 10a2 2 0 11-4 0 2 2 0 014 0z"/></svg>
+            <span>Live Candidate Pool ({{ candidates|length }})</span>
+        </button>
+        <button @click="activeTab = 'jobs'" 
+                :class="activeTab === 'jobs' ? 'border-emerald-500 text-emerald-400 bg-slate-800/50' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'"
+                class="px-5 py-3 font-medium text-sm border-b-2 rounded-t-xl transition-all flex items-center space-x-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M21 13.255A23.931 23.931 0 0112 15c-3.183 0-6.222-.62-9-1.745M16 6V4a2 2 0 00-2-2h-4a2 2 0 00-2 2v2m4 6h.01M5 20h14a2 2 0 002-2V8a2 2 0 00-2-2H5a2 2 0 00-2 2v10a2 2 0 002 2z"/></svg>
+            <span>Job Descriptions ({{ jobs|length }})</span>
+        </button>
+        <button @click="activeTab = 'screener'" 
+                :class="activeTab === 'screener' ? 'border-emerald-500 text-emerald-400 bg-slate-800/50' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'"
+                class="px-5 py-3 font-medium text-sm border-b-2 rounded-t-xl transition-all flex items-center space-x-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M9 19v-6a2 2 0 00-2-2H5a2 2 0 00-2 2v6a2 2 0 002 2h2a2 2 0 002-2zm0 0V9a2 2 0 012-2h2a2 2 0 012 2v10m-6 0a2 2 0 002 2h2a2 2 0 002-2m0 0V5a2 2 0 012-2h2a2 2 0 012 2v14a2 2 0 01-2 2h-2a2 2 0 01-2-2z"/></svg>
+            <span>AI Screening & Ranking Engine</span>
+        </button>
+        <button @click="activeTab = 'upload'" 
+                :class="activeTab === 'upload' ? 'border-emerald-500 text-emerald-400 bg-slate-800/50' : 'border-transparent text-slate-400 hover:text-slate-200 hover:bg-slate-800/30'"
+                class="px-5 py-3 font-medium text-sm border-b-2 rounded-t-xl transition-all flex items-center space-x-2">
+            <svg class="w-4 h-4" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M4 16v1a3 3 0 003 3h10a3 3 0 003-3v-1m-4-8l-4-4m0 0L8 8m4-4v12"/></svg>
+            <span>Batch Upload Resumes</span>
+        </button>
+    </div>
+
+    <!-- ================= TAB 1: CANDIDATE POOL ================= -->
+    <div x-show="activeTab === 'candidates'" class="space-y-6">
+        <div class="flex items-center justify-between">
+            <h2 class="text-lg font-semibold text-white">Parsed Candidate Talent Pool</h2>
+            <button @click="activeTab = 'upload'" class="bg-emerald-600 hover:bg-emerald-500 text-white text-sm font-medium px-4 py-2 rounded-lg transition-colors shadow-lg shadow-emerald-900/20 flex items-center space-x-2">
+                <span>+ Upload New Resumes</span>
+            </button>
+        </div>
+
+        <div class="bg-slate-850 rounded-xl border border-slate-800 overflow-hidden shadow-xl">
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-800/60 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-800">
+                            <th class="py-3 px-4 font-semibold">Candidate Name</th>
+                            <th class="py-3 px-4 font-semibold">Email</th>
+                            <th class="py-3 px-4 font-semibold">Skills Extracted</th>
+                            <th class="py-3 px-4 font-semibold">Experience</th>
+                            <th class="py-3 px-4 font-semibold">Status</th>
+                            <th class="py-3 px-4 font-semibold text-right">Actions</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800 text-sm text-slate-300">
+                        {% if candidates %}
+                            {% for cand in candidates %}
+                            <tr class="hover:bg-slate-800/30 transition-colors">
+                                <td class="py-3 px-4 font-medium text-white">
+                                    <button @click="openBreakdown({{ cand.id }})" class="hover:text-emerald-400 text-left underline decoration-dotted transition-colors">
+                                        {{ cand.full_name }}
+                                    </button>
+                                </td>
+                                <td class="py-3 px-4 text-slate-400">{{ cand.email }}</td>
+                                <td class="py-3 px-4 max-w-xs truncate">
+                                    {% set latest_ext = cand.resumes[0].extraction if cand.resumes and cand.resumes[0].extraction else none %}
+                                    {% if latest_ext and latest_ext.parsed_skills %}
+                                        <span class="text-xs bg-slate-800 text-emerald-400 px-2 py-1 rounded border border-slate-700">{{ latest_ext.parsed_skills }}</span>
+                                    {% else %}
+                                        <span class="text-xs text-slate-500">None detected</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-4">
+                                    {% if latest_ext %}
+                                        <span class="font-semibold text-slate-200">{{ latest_ext.experience_years }} yrs</span>
+                                    {% else %}
+                                        <span class="text-slate-500">0 yrs</span>
+                                    {% endif %}
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="inline-flex items-center px-2.5 py-0.5 rounded-full text-xs font-semibold
+                                        {% if cand.status.value == 'shortlisted' %} bg-emerald-500/10 text-emerald-400 border border-emerald-500/30
+                                        {% elif cand.status.value == 'rejected' %} bg-red-500/10 text-red-400 border border-red-500/30
+                                        {% else %} bg-amber-500/10 text-amber-400 border border-amber-500/30 {% endif %}">
+                                        {{ cand.status.value | upper }}
+                                    </span>
+                                </td>
+                                <td class="py-3 px-4 text-right space-x-2">
+                                    <select @change="updateStatus({{ cand.id }}, $event.target.value)" class="bg-slate-800 text-xs text-slate-200 rounded px-2 py-1 border border-slate-700 focus:outline-none focus:border-emerald-500">
+                                        <option value="" disabled selected>Change Status</option>
+                                        <option value="pending">Pending</option>
+                                        <option value="shortlisted">Shortlist</option>
+                                        <option value="rejected">Reject</option>
+                                        <option value="on_hold">On-Hold</option>
+                                    </select>
+                                    <button @click="openBreakdown({{ cand.id }})" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs px-2.5 py-1 rounded border border-slate-700 transition-colors">
+                                        Breakdown
+                                    </button>
+                                </td>
+                            </tr>
+                            {% endfor %}
+                        {% else %}
+                            <tr>
+                                <td colspan="6" class="py-8 text-center text-slate-500">No candidates found. Upload resumes in the Upload tab.</td>
+                            </tr>
+                        {% endif %}
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= TAB 2: JOB DESCRIPTIONS ================= -->
+    <div x-show="activeTab === 'jobs'" class="space-y-6">
+        <div class="grid grid-cols-1 lg:grid-cols-3 gap-6">
+            <!-- Create Job Form -->
+            <div class="bg-slate-850 p-6 rounded-xl border border-slate-800 shadow-xl lg:col-span-1">
+                <h2 class="text-lg font-semibold text-white mb-4">Post New Job Description</h2>
+                <form action="/jobs" method="POST" class="space-y-4">
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Job Title *</label>
+                        <input type="text" name="title" required placeholder="e.g. Senior AI Engineer" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Department</label>
+                        <input type="text" name="department" placeholder="e.g. Engineering" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Job Description Text *</label>
+                        <textarea name="description" rows="4" required placeholder="Enter detailed job description, responsibilities, and requirements..." class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500"></textarea>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Required Skills (Comma-separated)</label>
+                        <input type="text" name="required_skills" placeholder="Python, FastAPI, Machine Learning, SQL" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        <span class="text-[11px] text-slate-500 mt-1 block">Leave blank to auto-extract skills using NLP.</span>
+                    </div>
+                    <div>
+                        <label class="block text-xs font-medium text-slate-400 mb-1">Min Experience Years</label>
+                        <input type="number" step="0.5" name="min_experience_years" value="2.0" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                    </div>
+                    <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-2.5 rounded-lg text-sm transition-colors shadow-lg shadow-emerald-900/20">
+                        Create Job Opening
+                    </button>
+                </form>
+            </div>
+
+            <!-- Job List Table -->
+            <div class="bg-slate-850 p-6 rounded-xl border border-slate-800 shadow-xl lg:col-span-2">
+                <h2 class="text-lg font-semibold text-white mb-4">Active Job Vacancies</h2>
+                <div class="overflow-x-auto">
+                    <table class="w-full text-left border-collapse">
+                        <thead>
+                            <tr class="bg-slate-800/60 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-800">
+                                <th class="py-3 px-4 font-semibold">Title</th>
+                                <th class="py-3 px-4 font-semibold">Department</th>
+                                <th class="py-3 px-4 font-semibold">Required Skills</th>
+                                <th class="py-3 px-4 font-semibold">Min Exp</th>
+                                <th class="py-3 px-4 font-semibold text-right">Quick Actions</th>
+                            </tr>
+                        </thead>
+                        <tbody class="divide-y divide-slate-800 text-sm text-slate-300">
+                            {% if jobs %}
+                                {% for job in jobs %}
+                                <tr class="hover:bg-slate-800/30 transition-colors">
+                                    <td class="py-3 px-4 font-medium text-white">{{ job.title }}</td>
+                                    <td class="py-3 px-4 text-slate-400">{{ job.department or 'N/A' }}</td>
+                                    <td class="py-3 px-4 max-w-xs truncate text-xs text-emerald-400">{{ job.required_skills }}</td>
+                                    <td class="py-3 px-4">{{ job.min_experience_years }} yrs</td>
+                                    <td class="py-3 px-4 text-right space-x-1">
+                                        <button @click="activeTab = 'screener'; selectedJobId = {{ job.id }}; rankCandidates();" class="bg-emerald-600/20 hover:bg-emerald-600/30 text-emerald-400 text-xs px-2.5 py-1 rounded border border-emerald-500/30 transition-colors">
+                                            Screen & Rank
+                                        </button>
+                                        <a href="/api/v1/export/excel/{{ job.id }}" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded border border-slate-700 transition-colors inline-block">
+                                            Excel
+                                        </a>
+                                        <a href="/api/v1/export/csv/{{ job.id }}" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-xs px-2.5 py-1 rounded border border-slate-700 transition-colors inline-block">
+                                            CSV
+                                        </a>
+                                    </td>
+                                </tr>
+                                {% endfor %}
+                            {% else %}
+                                <tr>
+                                    <td colspan="5" class="py-8 text-center text-slate-500">No job descriptions posted yet. Use the form to create one.</td>
+                                </tr>
+                            {% endif %}
+                        </tbody>
+                    </table>
                 </div>
             </div>
         </div>
-        <div class="bg-slate-850 p-6 rounded-xl border border-slate-800 shadow-lg">
-            <h2 class="text-lg font-semibold text-white mb-4">System Status</h2>
-            <div class="space-y-3 text-sm">
-                <div class="flex justify-between items-center py-2 border-b border-slate-800">
-                    <span class="text-slate-400">Database Engine</span>
-                    <span class="text-emerald-400 font-medium">PostgreSQL (Async)</span>
+    </div>
+
+    <!-- ================= TAB 3: AI SCREENING & RANKING ENGINE ================= -->
+    <div x-show="activeTab === 'screener'" class="space-y-6">
+        <div class="bg-slate-850 p-6 rounded-xl border border-slate-800 shadow-xl space-y-4">
+            <h2 class="text-lg font-semibold text-white">Live AI Match Scoring & Ranking Engine</h2>
+            <p class="text-sm text-slate-400">Select an active job vacancy to evaluate and rank all candidate resumes instantly using TF-IDF similarity, skill matching, and experience verification.</p>
+            
+            <div class="flex flex-col sm:flex-row items-center space-y-3 sm:space-y-0 sm:space-x-4">
+                <div class="w-full sm:w-96">
+                    <label class="block text-xs font-medium text-slate-400 mb-1">Select Target Job Opening</label>
+                    <select x-model="selectedJobId" class="w-full bg-slate-900 border border-slate-700 rounded-lg px-3 py-2 text-sm text-white focus:outline-none focus:border-emerald-500">
+                        <option value="" disabled selected>-- Choose Job Position --</option>
+                        {% for job in jobs %}
+                        <option value="{{ job.id }}">{{ job.title }} {% if job.department %}({{ job.department }}){% endif %}</option>
+                        {% endfor %}
+                    </select>
                 </div>
-                <div class="flex justify-between items-center py-2 border-b border-slate-800">
-                    <span class="text-slate-400">Task Queue</span>
-                    <span class="text-emerald-400 font-medium">Redis / ARQ Ready</span>
+                <div class="sm:self-end flex space-x-3">
+                    <button @click="rankCandidates()" :disabled="isRanking" class="bg-emerald-600 hover:bg-emerald-500 disabled:opacity-50 text-white font-medium px-5 py-2 rounded-lg text-sm transition-colors shadow-lg shadow-emerald-900/20 flex items-center space-x-2">
+                        <svg x-show="isRanking" class="animate-spin -ml-1 mr-2 h-4 w-4 text-white" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                        <span x-text="isRanking ? 'Ranking Candidates...' : 'Rank & Match Candidates'"></span>
+                    </button>
+                    <template x-if="selectedJobId">
+                        <div class="flex space-x-2">
+                            <a :href="`/api/v1/export/excel/${selectedJobId}`" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 text-sm font-medium px-4 py-2 rounded-lg border border-slate-700 transition-colors flex items-center space-x-1">
+                                <span>Export Excel</span>
+                            </a>
+                            <a :href="`/api/v1/export/csv/${selectedJobId}`" class="bg-slate-800 hover:bg-slate-700 text-slate-200 text-sm font-medium px-4 py-2 rounded-lg border border-slate-700 transition-colors flex items-center space-x-1">
+                                <span>Export CSV</span>
+                            </a>
+                        </div>
+                    </template>
                 </div>
-                <div class="flex justify-between items-center py-2 border-b border-slate-800">
-                    <span class="text-slate-400">NLP Engine</span>
-                    <span class="text-emerald-400 font-medium">scikit-learn TF-IDF</span>
+            </div>
+
+            <template x-if="rankingError">
+                <div class="bg-red-500/10 border border-red-500/30 text-red-400 p-3 rounded-lg text-sm" x-text="rankingError"></div>
+            </template>
+        </div>
+
+        <!-- Ranking Results Table -->
+        <div class="bg-slate-850 rounded-xl border border-slate-800 overflow-hidden shadow-xl" x-show="rankingResults.length > 0">
+            <div class="p-4 bg-slate-800/60 border-b border-slate-800 flex justify-between items-center">
+                <h3 class="font-semibold text-white text-sm">Screening & Ranking Results</h3>
+                <span class="text-xs text-emerald-400" x-text="`${rankingResults.length} Candidates Evaluated`"></span>
+            </div>
+            <div class="overflow-x-auto">
+                <table class="w-full text-left border-collapse">
+                    <thead>
+                        <tr class="bg-slate-800/40 text-slate-400 text-xs uppercase tracking-wider border-b border-slate-800">
+                            <th class="py-3 px-4 font-semibold">Rank & Candidate</th>
+                            <th class="py-3 px-4 font-semibold">Composite Score</th>
+                            <th class="py-3 px-4 font-semibold">Skill Match</th>
+                            <th class="py-3 px-4 font-semibold">Experience Match</th>
+                            <th class="py-3 px-4 font-semibold">Semantic Match</th>
+                            <th class="py-3 px-4 font-semibold text-right">Details</th>
+                        </tr>
+                    </thead>
+                    <tbody class="divide-y divide-slate-800 text-sm text-slate-300">
+                        <template x-for="(res, index) in rankingResults" :key="res.id">
+                            <tr class="hover:bg-slate-800/30 transition-colors">
+                                <td class="py-3 px-4">
+                                    <div class="flex items-center space-x-3">
+                                        <span class="font-bold text-xs bg-slate-800 text-emerald-400 w-6 h-6 rounded-full flex items-center justify-center border border-slate-700" x-text="index + 1"></span>
+                                        <div>
+                                            <div class="font-medium text-white" x-text="res.candidate_name"></div>
+                                            <div class="text-xs text-slate-400" x-text="res.candidate_email"></div>
+                                        </div>
+                                    </div>
+                                </td>
+                                <td class="py-3 px-4">
+                                    <span class="font-bold text-emerald-400 text-base" x-text="res.composite_score.toFixed(1) + '%'"></span>
+                                </td>
+                                <td class="py-3 px-4" x-text="res.skill_match_score.toFixed(1) + '%'"></td>
+                                <td class="py-3 px-4" x-text="res.experience_match_score.toFixed(1) + '%'"></td>
+                                <td class="py-3 px-4" x-text="res.semantic_score.toFixed(1) + '%'"></td>
+                                <td class="py-3 px-4 text-right">
+                                    <button @click="openBreakdown(res.candidate_id)" class="bg-slate-800 hover:bg-slate-700 text-emerald-400 text-xs px-3 py-1.5 rounded border border-slate-700 transition-colors">
+                                        View Breakdown
+                                    </button>
+                                </td>
+                            </tr>
+                        </template>
+                    </tbody>
+                </table>
+            </div>
+        </div>
+    </div>
+
+    <!-- ================= TAB 4: BATCH UPLOAD RESUMES ================= -->
+    <div x-show="activeTab === 'upload'" class="space-y-6">
+        <div class="bg-slate-850 p-8 rounded-xl border border-slate-800 shadow-xl max-w-2xl mx-auto text-center space-y-6">
+            <div>
+                <h2 class="text-xl font-bold text-white">Batch Upload Resumes</h2>
+                <p class="text-sm text-slate-400 mt-1">Upload multiple candidate resumes in PDF or DOCX format. Automated NLP extraction will parse skills, experience, and education.</p>
+            </div>
+
+            <form action="/upload" method="POST" enctype="multipart/form-data" class="space-y-6">
+                <div class="border-2 border-dashed border-slate-700 hover:border-emerald-500 rounded-xl p-8 transition-colors bg-slate-900/50">
+                    <svg class="w-12 h-12 text-slate-500 mx-auto mb-3" fill="none" stroke="currentColor" viewBox="0 0 24 24"><path stroke-linecap="round" stroke-linejoin="round" stroke-width="2" d="M7 16a4 4 0 01-.88-7.903A5 5 0 1115.9 6L16 6a5 5 0 011 9.9M15 13l-3-3m0 0l-3 3m3-3v12"/></svg>
+                    <label class="block text-sm font-medium text-slate-300 cursor-pointer">
+                        <span class="text-emerald-400 hover:underline">Choose resume files</span> or drag and drop here
+                        <input type="file" name="files" multiple accept=".pdf,.docx" required class="hidden">
+                    </label>
+                    <p class="text-xs text-slate-500 mt-2">PDF and DOCX up to 10MB each</p>
                 </div>
-                <div class="flex justify-between items-center py-2">
-                    <span class="text-slate-400">API Status</span>
-                    <span class="inline-flex items-center px-2 py-0.5 rounded text-xs font-medium bg-emerald-500/10 text-emerald-400">Operational</span>
-                </div>
+
+                <button type="submit" class="w-full bg-emerald-600 hover:bg-emerald-500 text-white font-medium py-3 rounded-xl text-sm transition-colors shadow-lg shadow-emerald-900/20">
+                    Upload & Process Resumes
+                </button>
+            </form>
+        </div>
+    </div>
+
+    <!-- ================= SCORE BREAKDOWN MODAL ================= -->
+    <div x-show="breakdownModalOpen" class="fixed inset-0 z-50 flex items-center justify-center bg-black/70 backdrop-blur-sm p-4" x-cloak>
+        <div @click.away="breakdownModalOpen = false" class="bg-slate-850 border border-slate-800 rounded-2xl max-w-2xl w-full p-6 space-y-6 shadow-2xl max-h-[90vh] overflow-y-auto">
+            <div class="flex justify-between items-center pb-4 border-b border-slate-800">
+                <h3 class="text-lg font-bold text-white flex items-center space-x-2">
+                    <span>Candidate Score Breakdown</span>
+                </h3>
+                <button @click="breakdownModalOpen = false" class="text-slate-400 hover:text-white text-xl font-bold">&times;</button>
+            </div>
+
+            <div x-show="loadingBreakdown" class="py-12 text-center text-slate-400">
+                <svg class="animate-spin h-8 w-8 text-emerald-500 mx-auto mb-3" fill="none" viewBox="0 0 24 24"><circle class="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" stroke-width="4"></circle><path class="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path></svg>
+                <span>Loading analysis breakdown...</span>
+            </div>
+
+            <div x-show="!loadingBreakdown && breakdownData" class="space-y-6">
+                <template x-for="bd in breakdownData.breakdowns" :key="bd.match_id">
+                    <div class="bg-slate-900 p-5 rounded-xl border border-slate-800 space-y-4">
+                        <div class="flex justify-between items-center">
+                            <span class="font-semibold text-white text-base" x-text="bd.job_title"></span>
+                            <span class="text-xl font-bold text-emerald-400" x-text="bd.composite_score.toFixed(1) + '%'"><span class="text-xs text-slate-400 font-normal"> Composite</span></span>
+                        </div>
+
+                        <div class="grid grid-cols-3 gap-3 text-center">
+                            <div class="bg-slate-850 p-3 rounded-lg border border-slate-800">
+                                <div class="text-xs text-slate-400">Skill Match</div>
+                                <div class="text-lg font-bold text-white mt-1" x-text="bd.skill_match_score.toFixed(1) + '%'"></div>
+                            </div>
+                            <div class="bg-slate-850 p-3 rounded-lg border border-slate-800">
+                                <div class="text-xs text-slate-400">Experience</div>
+                                <div class="text-lg font-bold text-white mt-1" x-text="bd.experience_match_score.toFixed(1) + '%'"></div>
+                            </div>
+                            <div class="bg-slate-850 p-3 rounded-lg border border-slate-800">
+                                <div class="text-xs text-slate-400">TF-IDF Semantic</div>
+                                <div class="text-lg font-bold text-white mt-1" x-text="bd.semantic_score.toFixed(1) + '%'"></div>
+                            </div>
+                        </div>
+
+                        <div class="space-y-2">
+                            <div class="text-xs font-semibold text-slate-400 uppercase tracking-wider">Skill Match Details</div>
+                            <div class="flex flex-wrap gap-2">
+                                <template x-for="ss in bd.skill_scores" :key="ss.skill_name">
+                                    <span class="text-xs px-2.5 py-1 rounded-full font-medium"
+                                          :class="ss.is_matched ? 'bg-emerald-500/10 text-emerald-400 border border-emerald-500/30' : 'bg-red-500/10 text-red-400 border border-red-500/30'"
+                                          x-text="ss.skill_name + (ss.is_matched ? ' ✓' : ' ✗')"></span>
+                                </template>
+                            </div>
+                        </div>
+
+                        <div class="text-xs text-slate-400 pt-2 border-t border-slate-800 flex justify-between">
+                            <span x-text="bd.summary_notes"></span>
+                            <span x-text="new Date(bd.evaluated_at).toLocaleString()"></span>
+                        </div>
+                    </div>
+                </template>
+            </div>
+
+            <div class="flex justify-end pt-2">
+                <button @click="breakdownModalOpen = false" class="bg-slate-800 hover:bg-slate-700 text-slate-200 px-4 py-2 rounded-lg text-sm transition-colors border border-slate-700">
+                    Close
+                </button>
             </div>
         </div>
     </div>
