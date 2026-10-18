@@ -8,6 +8,8 @@ import logging
 
 from src.core.config import settings
 from src.core.exceptions import register_exception_handlers
+from src.core.limiter import limiter, rate_limit_exceeded_handler
+from slowapi.errors import RateLimitExceeded
 from src.routers.jobs import router as jobs_router
 from src.routers.upload import router as upload_router
 from src.routers.screener import router as screener_router
@@ -70,6 +72,8 @@ def create_app() -> FastAPI:
 
     # Register Exception Handlers
     register_exception_handlers(app)
+    app.state.limiter = limiter
+    app.add_exception_handler(RateLimitExceeded, rate_limit_exceeded_handler)
 
     # Include API Routers in Ordered Sequence
     app.include_router(jobs_router)
