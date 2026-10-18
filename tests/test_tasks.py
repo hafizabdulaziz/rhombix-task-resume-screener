@@ -15,3 +15,9 @@ def test_get_task_status():
 def test_get_task_status_not_found():
     response = client.get("/api/v1/tasks/invalid")
     assert response.status_code == 404
+
+def test_get_task_progress_widget():
+    response = client.get("/api/v1/tasks/test-task-123/widget")
+    assert response.status_code == 200
+    assert "Async Task ID" in response.text
+    assert "hx-get" in response.text
