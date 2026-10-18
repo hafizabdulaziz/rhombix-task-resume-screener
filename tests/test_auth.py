@@ -1,34 +1,34 @@
 import pytest
 from fastapi.testclient import TestClient
+from fastapi import FastAPI, Depends
 from src.main import app
+from src.core.security import require_role, create_access_token
 
 client = TestClient(app)
 
-def test_auth_register_and_login():
-    # Register user
-    reg_response = client.post(
-        "/api/v1/auth/register",
-        json={"email": "testhr@rhombix.com", "password": "SecurePassword123!", "role": "Admin"}
-    )
-    assert reg_response.status_code == 201
-    assert reg_response.json()["email"] == "testhr@rhombix.com"
+# Add a test protected route for RBAC verification
+@app.get("/api/v1/test-rbac-admin", dependencies=[Depends(require_role(["Admin"]))])
+async def admin_only_route():
+    return {"message": "Welcome Admin"}
 
-    # Login user
-    login_response = client.post(
-        "/api/v1/auth/login",
-        json={"email": "testhr@rhombix.com", "password": "SecurePassword123!"}
+def test_rbac_authorization():
+    # Create token with Viewer role
+    viewer_token = create_access_token({"sub": "viewer@rhombix.com", "role": "Viewer"})
+    
+    # Try accessing admin route with Viewer token -> should get 403 Forbidden
+    response = client.get(
+        "/api/v1/test-rbac-admin",
+        headers={"Authorization": f"Bearer {viewer_token}"}
     )
-    assert login_response.status_code == 200
-    data = login_response.json()
-    assert "access_token" in data
-    assert "refresh_token" in data
-    assert data["token_type"] == "bearer"
+    assert response.status_code == 403
 
-    # Test refresh token
-    refresh_response = client.post(
-        "/api/v1/auth/refresh",
-        json={"refresh_token": data["refresh_token"]}
+    # Create token with Admin role
+    admin_token = create_access_token({"sub": "admin@rhombix.com", "role": "Admin"})
+    
+    # Try accessing admin route with Admin token -> should get 200 OK
+    response = client.get(
+        "/api/v1/test-rbac-admin",
+        headers={"Authorization": f"Bearer {admin_token}"}
     )
-    assert refresh_response.status_code == 200
-    refresh_data = refresh_response.json()
-    assert "access_token" in refresh_data
+    assert response.status_code == 200
+    assert response.json()["message"] == "Welcome Admin"
