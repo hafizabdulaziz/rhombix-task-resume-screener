@@ -87,3 +87,10 @@ Enterprise-grade AI & Hybrid Resume Screening & Candidate Matching Platform buil
 - Created user registration, login, refresh, profile, and logout API endpoints (`src/routers/auth.py`).
 - Integrated Role-Based Access Control (RBAC) middleware (`require_role`) supporting Admin, Recruiter, and Viewer roles.
 - Written comprehensive test coverage (`tests/test_auth.py`) verifying end-to-end authentication, session management, and RBAC permission checks.
+
+## Phase 14 Status: COMPLETED - Rate Limiting, Security Guardrails & Audit Logging
+- Configured Redis-backed sliding window rate limiter (`src/core/limiter.py`) using `slowapi` on API endpoints.
+- Built Upload Security Sanitizer (`src/services/upload_sanitizer.py`) protecting against SQL injection filenames and malicious script/macro payloads.
+- Implemented Immutable Audit Logging System (`src/services/audit.py`) tracking HR activities and critical system events.
+- Applied HTTP Security Header Hardening Middleware (`src/core/security_headers.py`) including HSTS, CSP, X-Frame-Options, and X-XSS-Protection.
+- Verified all security controls with 43+ passing tests and automated validation.
