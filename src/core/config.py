@@ -19,6 +19,7 @@ class Settings(BaseSettings):
     upload_dir: str = "storage/uploads"
     export_dir: str = "storage/exports"
     max_upload_size_mb: int = 10
+    redis_url: str = "redis://localhost:6379"
 
     model_config = SettingsConfigDict(
         env_file=".env",
