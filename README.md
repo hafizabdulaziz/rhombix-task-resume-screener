@@ -74,3 +74,10 @@ Enterprise-grade AI & Hybrid Resume Screening & Candidate Matching Platform buil
 - Implemented background worker task function (`parse_and_score_resume_task`) for async document parsing and ML candidate scoring.
 - Added real-time task progress tracking and polling API (`GET /api/v1/tasks/{task_id}`) in `src/routers/tasks.py`.
 - Built resilient Dead-Letter Queue (DLQ) retry mechanism with max-retry limits and failure handling in `src/core/worker.py`.
+
+## Phase 12 Status: COMPLETED - Advanced Semantic Matching & Hybrid AI Scoring
+- Integrated sentence-transformers / Hugging Face vector embedding generation (`src/services/ai_embeddings.py`) for semantic search.
+- Built Hybrid Scoring Engine (`CompositeScorer.compute_hybrid_score`) combining 50% Exact Keyword Match + 50% Semantic Vector Distance.
+- Built Contact Information extraction pipeline (`src/services/contact_extractor.py`) for parsing emails, phone numbers, LinkedIn, and GitHub profiles.
+- Implemented Education & University Tier ranking algorithm (`src/services/education_parser.py`) for degree level and tier-1 institution detection.
+- Benchmarked hybrid scoring speed vs baseline and verified with 33+ passing unit and integration tests.
