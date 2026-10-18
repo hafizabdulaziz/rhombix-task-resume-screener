@@ -68,6 +68,7 @@ Enterprise-grade AI & Hybrid Resume Screening & Candidate Matching Platform buil
    python scripts/seed_data.py
    ```
 
-## Phase 11 Status: IN PROGRESS (Step 1 Completed) - Asynchronous Redis Task Queue & Worker Nodes
+## Phase 11 Status: IN PROGRESS (Step 2 Completed) - Asynchronous Redis Task Queue & Worker Nodes
 - Integrated Redis client configuration (`redis_url`) in `src/core/config.py`.
 - Setup ARQ task queue worker settings (`src/core/worker.py`) for asynchronous background processing.
+- Implemented background worker task function (`parse_and_score_resume_task`) for async document parsing and ML candidate scoring.
