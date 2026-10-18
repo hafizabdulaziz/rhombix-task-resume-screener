@@ -9,6 +9,7 @@ import logging
 from src.core.config import settings
 from src.core.exceptions import register_exception_handlers
 from src.core.limiter import limiter, rate_limit_exceeded_handler
+from src.core.security_headers import SecurityHeadersMiddleware
 from slowapi.errors import RateLimitExceeded
 from src.routers.jobs import router as jobs_router
 from src.routers.upload import router as upload_router
@@ -69,6 +70,7 @@ def create_app() -> FastAPI:
         allow_methods=["*"],
         allow_headers=["*"],
     )
+    app.add_middleware(SecurityHeadersMiddleware)
 
     # Register Exception Handlers
     register_exception_handlers(app)
