@@ -58,3 +58,36 @@ class CompositeScorer:
             "candidate_experience_years": candidate_experience_years,
             "required_experience_years": required_experience_years
         }
+
+    @staticmethod
+    def compute_hybrid_score(
+        job_description: str,
+        resume_text: str,
+        required_skills: List[str],
+        candidate_skills: List[str],
+        required_experience_years: float,
+        candidate_experience_years: float,
+        weights: Optional[Dict[str, float]] = None
+    ) -> Dict[str, any]:
+        """
+        Hybrid Scoring Engine combining exact keyword/skill matching & traditional metrics with AI semantic vector embeddings.
+        """
+        from src.services.ai_embeddings import AIEmbeddingsEngine
+
+        base_result = CompositeScorer.compute_score(
+            job_description=job_description,
+            resume_text=resume_text,
+            required_skills=required_skills,
+            candidate_skills=candidate_skills,
+            required_experience_years=required_experience_years,
+            candidate_experience_years=candidate_experience_years,
+            weights=weights
+        )
+
+        semantic_score = AIEmbeddingsEngine.compute_semantic_score(job_description, resume_text)
+        hybrid_score = round((base_result["composite_score"] * 0.5) + (semantic_score * 0.5), 2)
+
+        base_result["semantic_score"] = semantic_score
+        base_result["hybrid_score"] = hybrid_score
+        base_result["composite_score"] = hybrid_score
+        return base_result
