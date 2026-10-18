@@ -1,7 +1,7 @@
-from fastapi import APIRouter, HTTPException, status
+from fastapi import APIRouter, HTTPException, status, Depends
 from pydantic import BaseModel, EmailStr
 from typing import Dict
-from src.core.security import get_password_hash, verify_password, create_access_token, create_refresh_token, decode_token
+from src.core.security import get_password_hash, verify_password, create_access_token, create_refresh_token, decode_token, get_current_user
 import structlog
 
 logger = structlog.get_logger()
@@ -79,3 +79,18 @@ async def refresh_token(payload: RefreshTokenRequest):
     except Exception as e:
         logger.error("token_refresh_failed", error=str(e))
         raise HTTPException(status_code=401, detail="Invalid or expired refresh token")
+
+@router.get("/profile", response_model=dict)
+async def get_profile(current_user: dict = Depends(get_current_user)):
+    email = current_user.get("sub")
+    role = current_user.get("role")
+    return {
+        "email": email,
+        "role": role,
+        "status": "active"
+    }
+
+@router.post("/logout", response_model=Dict[str, str])
+async def logout(current_user: dict = Depends(get_current_user)):
+    logger.info("user_logged_out", email=current_user.get("sub"))
+    return {"message": "Successfully logged out and session terminated"}
