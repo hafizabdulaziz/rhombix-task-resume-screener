@@ -81,3 +81,9 @@ Enterprise-grade AI & Hybrid Resume Screening & Candidate Matching Platform buil
 - Built Contact Information extraction pipeline (`src/services/contact_extractor.py`) for parsing emails, phone numbers, LinkedIn, and GitHub profiles.
 - Implemented Education & University Tier ranking algorithm (`src/services/education_parser.py`) for degree level and tier-1 institution detection.
 - Benchmarked hybrid scoring speed vs baseline and verified with 33+ passing unit and integration tests.
+
+## Phase 13 Status: COMPLETED - Enterprise JWT Authentication & RBAC System
+- Implemented secure password hashing with bcrypt (`src/core/security.py`) and JWT token generator for Access & Refresh tokens.
+- Created user registration, login, refresh, profile, and logout API endpoints (`src/routers/auth.py`).
+- Integrated Role-Based Access Control (RBAC) middleware (`require_role`) supporting Admin, Recruiter, and Viewer roles.
+- Written comprehensive test coverage (`tests/test_auth.py`) verifying end-to-end authentication, session management, and RBAC permission checks.
