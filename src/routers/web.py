@@ -19,7 +19,7 @@ logger = structlog.get_logger()
 templates = Jinja2Templates(directory="src/templates")
 router = APIRouter(tags=["Web UI"])
 
-@router.get("/", response_class=HTMLResponse)
+@router.get("/dashboard", response_class=HTMLResponse)
 async def dashboard_view(
     request: Request,
     success: str | None = Query(None),
@@ -162,3 +162,17 @@ async def upload_resumes_form(
     except Exception as e:
         logger.error("web_upload_error", error=str(e))
         return RedirectResponse(url="/?tab=upload&error=Failed+to+upload+resumes", status_code=303)
+
+@router.get("/jobs-ui", response_class=HTMLResponse)
+async def jobs_ui_view(request: Request, db: AsyncSession = Depends(get_db)):
+    try:
+        jobs_res = await db.execute(select(JobDescription).order_by(JobDescription.created_at.desc()))
+        jobs = jobs_res.scalars().all()
+    except Exception:
+        jobs = []
+    return templates.TemplateResponse(request, "jobs.html", {"jobs": jobs})
+
+@router.get("/upload-ui", response_class=HTMLResponse)
+async def upload_ui_view(request: Request):
+    return templates.TemplateResponse(request, "upload.html", {})
+

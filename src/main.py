@@ -1,9 +1,11 @@
 from contextlib import asynccontextmanager
 
 import structlog
+import os
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
 from fastapi.responses import RedirectResponse
+from fastapi.staticfiles import StaticFiles
 from slowapi.errors import RateLimitExceeded
 
 from src.core.config import settings
@@ -19,6 +21,7 @@ from src.routers.jobs import router as jobs_router
 from src.routers.screener import router as screener_router
 from src.routers.tasks import router as tasks_router
 from src.routers.upload import router as upload_router
+from src.routers.web import router as web_router
 
 # Configure structured logging
 structlog.configure(
@@ -83,9 +86,17 @@ def create_app() -> FastAPI:
     app.include_router(tasks_router)
     app.include_router(auth_router)
     app.include_router(analytics_router)
+    app.include_router(web_router)
+
+    os.makedirs("src/static", exist_ok=True)
+    app.mount("/static", StaticFiles(directory="src/static"), name="static")
 
     @app.get("/", include_in_schema=False)
     async def root():
+        return RedirectResponse(url="/docs", status_code=303)
+
+    @app.get("/docs/", include_in_schema=False)
+    async def docs_slash_redirect():
         return RedirectResponse(url="/docs", status_code=303)
 
     @app.get("/health", tags=["System Health & Performance Monitoring"])
