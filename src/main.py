@@ -3,8 +3,7 @@ from contextlib import asynccontextmanager
 import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.openapi.docs import get_swagger_ui_html
-from fastapi.responses import HTMLResponse, RedirectResponse
+from fastapi.responses import RedirectResponse
 from slowapi.errors import RateLimitExceeded
 
 from src.core.config import settings
@@ -55,9 +54,9 @@ def create_app() -> FastAPI:
     app = FastAPI(
         title=settings.app_name,
         version="1.0.0",
-        description="Enterprise-grade AI & Hybrid Resume Screening & Candidate Matching Platform (Silver Swagger Edition)",
+        description="Enterprise-grade AI & Hybrid Resume Screening & Candidate Matching Platform",
         docs_url="/docs",
-        redoc_url=None,
+        redoc_url="/redoc",
         lifespan=lifespan,
     )
 
@@ -86,10 +85,7 @@ def create_app() -> FastAPI:
     app.include_router(analytics_router)
 
     @app.get("/", include_in_schema=False)
-    async def root_redirect():
-        """
-        Redirects root URL directly to comprehensive Silver Swagger UI (/docs).
-        """
+    async def root():
         return RedirectResponse(url="/docs", status_code=303)
 
     @app.get("/health", tags=["System Health & Performance Monitoring"])
