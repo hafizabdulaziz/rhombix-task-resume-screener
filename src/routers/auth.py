@@ -1,8 +1,16 @@
-from fastapi import APIRouter, HTTPException, status, Depends
-from pydantic import BaseModel, EmailStr
-from typing import Dict
-from src.core.security import get_password_hash, verify_password, create_access_token, create_refresh_token, decode_token, get_current_user
+
 import structlog
+from fastapi import APIRouter, Depends, HTTPException, status
+from pydantic import BaseModel, EmailStr
+
+from src.core.security import (
+    create_access_token,
+    create_refresh_token,
+    decode_token,
+    get_current_user,
+    get_password_hash,
+    verify_password,
+)
 
 logger = structlog.get_logger()
 router = APIRouter(prefix="/api/v1/auth", tags=["Authentication"])
@@ -26,7 +34,7 @@ class TokenResponse(BaseModel):
 class RefreshTokenRequest(BaseModel):
     refresh_token: str
 
-@router.post("/register", response_model=Dict[str, str], status_code=status.HTTP_201_CREATED)
+@router.post("/register", response_model=dict[str, str], status_code=status.HTTP_201_CREATED)
 async def register(payload: UserRegisterRequest):
     if payload.email in FAKE_USERS_DB:
         raise HTTPException(status_code=400, detail="Email already registered")
@@ -90,7 +98,7 @@ async def get_profile(current_user: dict = Depends(get_current_user)):
         "status": "active"
     }
 
-@router.post("/logout", response_model=Dict[str, str])
+@router.post("/logout", response_model=dict[str, str])
 async def logout(current_user: dict = Depends(get_current_user)):
     logger.info("user_logged_out", email=current_user.get("sub"))
     return {"message": "Successfully logged out and session terminated"}

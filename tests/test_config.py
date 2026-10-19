@@ -1,6 +1,6 @@
-import pytest
 from src.core.config import settings
 from src.main import create_app
+
 
 def test_settings_loaded():
     assert settings.app_name == "Rhombix ResumeScreener Pro"

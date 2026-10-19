@@ -1,7 +1,9 @@
 import logging
 import sys
-from pydantic_settings import BaseSettings, SettingsConfigDict
+
 import structlog
+from pydantic_settings import BaseSettings, SettingsConfigDict
+
 
 class Settings(BaseSettings):
     app_name: str = "Rhombix ResumeScreener Pro"

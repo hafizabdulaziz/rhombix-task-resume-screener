@@ -1,6 +1,6 @@
-import sys
 import argparse
 import subprocess
+
 
 def main():
     parser = argparse.ArgumentParser(description="Rhombix ResumeScreener Pro Management CLI")

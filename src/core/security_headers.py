@@ -1,6 +1,6 @@
+import structlog
 from fastapi import Request
 from starlette.middleware.base import BaseHTTPMiddleware
-import structlog
 
 logger = structlog.get_logger()
 

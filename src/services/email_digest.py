@@ -1,5 +1,6 @@
-from src.services.email import EmailService
 import structlog
+
+from src.services.email import EmailService
 
 logger = structlog.get_logger()
 

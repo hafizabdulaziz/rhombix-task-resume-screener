@@ -1,7 +1,8 @@
-from fastapi import APIRouter, Depends, Query
+from typing import Any
+
+from fastapi import APIRouter, Depends
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
-from typing import Dict, Any, List
 
 from src.db.session import get_db
 from src.models.candidate import Candidate, CandidateStatus
@@ -9,7 +10,7 @@ from src.models.job import JobDescription, MatchResult
 
 router = APIRouter(prefix="/api/v1/analytics", tags=["Analytics & Reporting"])
 
-@router.get("/metrics", response_model=Dict[str, Any])
+@router.get("/metrics", response_model=dict[str, Any])
 async def get_analytics_metrics(db: AsyncSession = Depends(get_db)):
     """
     Returns aggregated recruiter analytics, pipeline conversion funnel counts,

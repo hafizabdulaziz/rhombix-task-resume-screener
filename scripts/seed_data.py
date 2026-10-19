@@ -1,8 +1,9 @@
 import asyncio
+
 import structlog
-from sqlalchemy.ext.asyncio import AsyncSession
+
 from src.db.session import AsyncSessionLocal
-from src.models import Candidate, JobDescription, CandidateStatus
+from src.models import Candidate, CandidateStatus, JobDescription
 
 logger = structlog.get_logger()
 

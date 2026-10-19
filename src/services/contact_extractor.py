@@ -1,6 +1,6 @@
 import re
+
 import structlog
-from typing import Dict, List, Optional
 
 logger = structlog.get_logger()
 
@@ -16,7 +16,7 @@ class ContactExtractor:
     GITHUB_REGEX = r'(?:https?:\/\/)?(?:www\.)?github\.com\/[a-zA-Z0-9_-]+'
 
     @classmethod
-    def extract_contacts(cls, text: str) -> Dict[str, Optional[str] | List[str]]:
+    def extract_contacts(cls, text: str) -> dict[str, str | None | list[str]]:
         if not text:
             return {
                 "emails": [],

@@ -1,19 +1,19 @@
-from fastapi import APIRouter, Depends, status, Query
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
-from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, List
-from datetime import datetime, timezone
+from datetime import UTC, datetime
 
+import structlog
+from fastapi import APIRouter, Depends, Query, status
+from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from src.core.exceptions import AppError
 from src.db.session import get_db
-from src.models.candidate import Candidate, CandidateStatus, ResumeFile, ExtractionData
+from src.models.candidate import Candidate, CandidateStatus, ResumeFile
 from src.models.job import JobDescription, MatchResult, SkillScore
-from src.services.matching import ResumeMatcher
 from src.services.candidate_lifecycle import CandidateLifecycleManager
 from src.services.email import EmailService
-from src.core.exceptions import AppError
-import structlog
+from src.services.matching import ResumeMatcher
 
 logger = structlog.get_logger()
 
@@ -21,7 +21,7 @@ router = APIRouter(prefix="/api/v1/screener")
 
 class RankRequest(BaseModel):
     job_id: int
-    candidate_ids: Optional[List[int]] = Field(None, description="Optional list of candidate IDs to rank. If omitted, ranks all candidates.")
+    candidate_ids: list[int] | None = Field(None, description="Optional list of candidate IDs to rank. If omitted, ranks all candidates.")
 
 class SkillScoreResponse(BaseModel):
     skill_name: str
@@ -40,8 +40,8 @@ class MatchResultResponse(BaseModel):
     skill_match_score: float
     experience_match_score: float
     semantic_score: float
-    summary_notes: Optional[str]
-    skill_scores: List[SkillScoreResponse]
+    summary_notes: str | None
+    skill_scores: list[SkillScoreResponse]
     evaluated_at: datetime
 
     model_config = ConfigDict(from_attributes=True)
@@ -49,7 +49,7 @@ class MatchResultResponse(BaseModel):
 class StatusUpdateRequest(BaseModel):
     status: CandidateStatus
 
-@router.post("/rank", response_model=List[MatchResultResponse], status_code=status.HTTP_200_OK, tags=["AI Screening, Matching & Ranking Engine"])
+@router.post("/rank", response_model=list[MatchResultResponse], status_code=status.HTTP_200_OK, tags=["AI Screening, Matching & Ranking Engine"])
 async def rank_candidates(rank_req: RankRequest, db: AsyncSession = Depends(get_db)):
     """
     Executes batch candidate screening and scoring against a specified Job Description.
@@ -109,7 +109,7 @@ async def rank_candidates(rank_req: RankRequest, db: AsyncSession = Depends(get_
             match_result.experience_match_score = score_data["experience_score"]
             match_result.semantic_score = score_data["similarity_score"]
             match_result.summary_notes = f"Matched {len(score_data['matched_skills'])} skills out of {len(req_skills)}."
-            match_result.evaluated_at = datetime.now(timezone.utc)
+            match_result.evaluated_at = datetime.now(UTC)
             for ss in match_result.skill_scores:
                 await db.delete(ss)
             match_result.skill_scores = []
@@ -160,11 +160,11 @@ async def rank_candidates(rank_req: RankRequest, db: AsyncSession = Depends(get_
     logger.info("candidates_ranked", job_id=job.id, total_screened=len(results))
     return results
 
-@router.get("/results/{job_id}", response_model=List[MatchResultResponse], tags=["AI Screening, Matching & Ranking Engine"])
+@router.get("/results/{job_id}", response_model=list[MatchResultResponse], tags=["AI Screening, Matching & Ranking Engine"])
 async def get_job_rankings(
     job_id: int,
     min_score: float = Query(0.0, ge=0.0, le=100.0),
-    status_filter: Optional[CandidateStatus] = None,
+    status_filter: CandidateStatus | None = None,
     skip: int = 0,
     limit: int = 100,
     db: AsyncSession = Depends(get_db)

@@ -1,6 +1,6 @@
+import structlog
 from fastapi import APIRouter, HTTPException
 from fastapi.responses import HTMLResponse
-import structlog
 
 logger = structlog.get_logger()
 

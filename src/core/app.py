@@ -1,10 +1,11 @@
 from contextlib import asynccontextmanager
+
+import structlog
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.staticfiles import StaticFiles
+
 from src.core.config import settings
 from src.core.exceptions import setup_exception_handlers
-import structlog
 
 logger = structlog.get_logger(__name__)
 

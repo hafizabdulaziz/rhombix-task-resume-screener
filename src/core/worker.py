@@ -1,8 +1,10 @@
 import asyncio
-from arq.connections import RedisSettings
-from src.core.config import settings
-import structlog
 import json
+
+import structlog
+from arq.connections import RedisSettings
+
+from src.core.config import settings
 
 logger = structlog.get_logger()
 

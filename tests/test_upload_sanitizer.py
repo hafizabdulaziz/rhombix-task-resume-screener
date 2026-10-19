@@ -1,6 +1,8 @@
 import pytest
-from src.services.upload_sanitizer import UploadSanitizer
+
 from src.core.exceptions import AppError
+from src.services.upload_sanitizer import UploadSanitizer
+
 
 def test_sanitize_filename_valid():
     filename = "John_Doe_Resume (1).pdf"

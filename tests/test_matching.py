@@ -1,9 +1,9 @@
-import pytest
-from src.services.tfidf_matcher import TFIDFMatcher
-from src.services.skill_matcher import SkillMatcher
-from src.services.experience_parser import ExperienceParser
 from src.services.composite_scorer import CompositeScorer
+from src.services.experience_parser import ExperienceParser
 from src.services.matching import ResumeMatcher
+from src.services.skill_matcher import SkillMatcher
+from src.services.tfidf_matcher import TFIDFMatcher
+
 
 def test_skill_matcher():
     req = ["Python", "FastAPI", "Postgres"]

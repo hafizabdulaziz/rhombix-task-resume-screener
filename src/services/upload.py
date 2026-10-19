@@ -1,8 +1,9 @@
 import os
-from typing import Optional, Tuple
-from fastapi import UploadFile
-from src.core.exceptions import AppError
+
 import structlog
+from fastapi import UploadFile
+
+from src.core.exceptions import AppError
 
 logger = structlog.get_logger()
 
@@ -17,7 +18,7 @@ MAX_FILE_SIZE_BYTES = MAX_FILE_SIZE_MB * 1024 * 1024
 
 class FileValidator:
     @staticmethod
-    async def validate(file: UploadFile) -> Tuple[str, bytes]:
+    async def validate(file: UploadFile) -> tuple[str, bytes]:
         """
         Validates uploaded file format, MIME type, magic headers, and file size.
         Returns tuple of (file_extension, file_bytes).

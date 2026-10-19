@@ -1,15 +1,15 @@
-from fastapi import APIRouter, Depends, status
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from pydantic import BaseModel, Field, ConfigDict
-from typing import Optional, List
 from datetime import datetime
 
+import structlog
+from fastapi import APIRouter, Depends, status
+from pydantic import BaseModel, ConfigDict, Field
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.core.exceptions import AppError
 from src.db.session import get_db
 from src.models.job import JobDescription
 from src.services.nlp import NLPTokenizer
-from src.core.exceptions import AppError
-import structlog
 
 logger = structlog.get_logger()
 
@@ -17,15 +17,15 @@ router = APIRouter(prefix="/api/v1/jobs", tags=["Jobs & Vacancies Management"])
 
 class JobCreate(BaseModel):
     title: str = Field(..., min_length=2, max_length=255)
-    department: Optional[str] = Field(None, max_length=100)
+    department: str | None = Field(None, max_length=100)
     description: str = Field(..., min_length=10)
-    required_skills: Optional[str] = Field(None, description="Comma-separated skills or JSON")
+    required_skills: str | None = Field(None, description="Comma-separated skills or JSON")
     min_experience_years: float = Field(0.0, ge=0.0)
 
 class JobResponse(BaseModel):
     id: int
     title: str
-    department: Optional[str]
+    department: str | None
     description: str
     required_skills: str
     min_experience_years: float
@@ -57,7 +57,7 @@ async def create_job(job_in: JobCreate, db: AsyncSession = Depends(get_db)):
     logger.info("job_description_created", job_id=db_job.id, title=db_job.title)
     return db_job
 
-@router.get("/", response_model=List[JobResponse])
+@router.get("/", response_model=list[JobResponse])
 async def list_jobs(skip: int = 0, limit: int = 100, db: AsyncSession = Depends(get_db)):
     """
     Retrieves a list of job descriptions.

@@ -1,11 +1,11 @@
-import pytest
 from src.core.security import (
-    get_password_hash,
-    verify_password,
     create_access_token,
     create_refresh_token,
-    decode_token
+    decode_token,
+    get_password_hash,
+    verify_password,
 )
+
 
 def test_password_hashing():
     password = "secretpassword"

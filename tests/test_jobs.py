@@ -1,5 +1,5 @@
-import pytest
 from fastapi.testclient import TestClient
+
 from src.main import app
 from src.services.nlp import NLPTokenizer
 from src.services.taxonomy import TaxonomyCategorizer

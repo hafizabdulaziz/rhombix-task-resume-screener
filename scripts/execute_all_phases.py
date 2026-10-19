@@ -1,7 +1,7 @@
-import os
-import subprocess
 import json
+import subprocess
 from datetime import datetime
+
 
 def run_cmd(cmd):
     print(f"RUNNING: {cmd}")

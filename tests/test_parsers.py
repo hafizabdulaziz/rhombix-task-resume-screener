@@ -1,11 +1,10 @@
+from io import BytesIO
+
 import pytest
 from fastapi import UploadFile
-from io import BytesIO
+
 from src.services.upload import FileValidator
-from src.services.storage import StorageManager
-from src.services.pdf_parser import PDFParser
-from src.services.docx_parser import DocxParser
-from src.core.exceptions import AppError
+
 
 @pytest.mark.asyncio
 async def test_file_validator_and_parsers():

@@ -1,5 +1,5 @@
-import subprocess
 import json
+import subprocess
 from datetime import datetime
 
 commits_plan = [

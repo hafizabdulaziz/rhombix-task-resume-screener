@@ -1,19 +1,18 @@
-from fastapi import APIRouter, Depends, Request, Form, UploadFile, File, Query
+
+import structlog
+from fastapi import APIRouter, Depends, File, Form, Query, Request, UploadFile
 from fastapi.responses import HTMLResponse, RedirectResponse
 from fastapi.templating import Jinja2Templates
+from sqlalchemy import func, select
 from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select, func
 from sqlalchemy.orm import selectinload
-from typing import List, Optional
 
 from src.db.session import get_db
-from src.models.candidate import Candidate, CandidateStatus, ResumeFile, ExtractionData
-from src.models.job import JobDescription, MatchResult
+from src.models.candidate import Candidate, CandidateStatus, ExtractionData, ResumeFile
+from src.models.job import JobDescription
+from src.services.nlp import NLPTokenizer
 from src.services.parser import ResumeParser
 from src.services.storage import StorageManager
-from src.services.nlp import NLPTokenizer
-from src.core.exceptions import AppError
-import structlog
 
 logger = structlog.get_logger()
 
@@ -23,9 +22,9 @@ router = APIRouter(tags=["Web UI"])
 @router.get("/", response_class=HTMLResponse)
 async def dashboard_view(
     request: Request,
-    success: Optional[str] = Query(None),
-    error: Optional[str] = Query(None),
-    tab: Optional[str] = Query("jobs"),
+    success: str | None = Query(None),
+    error: str | None = Query(None),
+    tab: str | None = Query("jobs"),
     db: AsyncSession = Depends(get_db)
 ):
     try:
@@ -98,7 +97,7 @@ async def create_job_form(
 
 @router.post("/upload", response_class=RedirectResponse)
 async def upload_resumes_form(
-    files: List[UploadFile] = File(...),
+    files: list[UploadFile] = File(...),
     db: AsyncSession = Depends(get_db)
 ):
     uploaded_count = 0

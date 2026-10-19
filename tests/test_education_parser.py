@@ -1,5 +1,5 @@
-import pytest
 from src.services.education_parser import EducationParser
+
 
 def test_education_parser_phd_tier1():
     text = "Ph.D. in Computer Science from Stanford University"

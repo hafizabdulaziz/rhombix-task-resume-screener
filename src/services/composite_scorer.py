@@ -1,8 +1,9 @@
-from typing import List, Dict, Optional
-from src.services.tfidf_matcher import TFIDFMatcher
-from src.services.skill_matcher import SkillMatcher
-from src.services.experience_parser import ExperienceParser
+
 import structlog
+
+from src.services.experience_parser import ExperienceParser
+from src.services.skill_matcher import SkillMatcher
+from src.services.tfidf_matcher import TFIDFMatcher
 
 logger = structlog.get_logger()
 
@@ -11,12 +12,12 @@ class CompositeScorer:
     def compute_score(
         job_description: str,
         resume_text: str,
-        required_skills: List[str],
-        candidate_skills: List[str],
+        required_skills: list[str],
+        candidate_skills: list[str],
         required_experience_years: float,
         candidate_experience_years: float,
-        weights: Optional[Dict[str, float]] = None
-    ) -> Dict[str, any]:
+        weights: dict[str, float] | None = None
+    ) -> dict[str, any]:
         """
         Computes aggregated composite 0-100% scoring calculator combining:
         - Skills match score
@@ -63,12 +64,12 @@ class CompositeScorer:
     def compute_hybrid_score(
         job_description: str,
         resume_text: str,
-        required_skills: List[str],
-        candidate_skills: List[str],
+        required_skills: list[str],
+        candidate_skills: list[str],
         required_experience_years: float,
         candidate_experience_years: float,
-        weights: Optional[Dict[str, float]] = None
-    ) -> Dict[str, any]:
+        weights: dict[str, float] | None = None
+    ) -> dict[str, any]:
         """
         Hybrid Scoring Engine combining exact keyword/skill matching & traditional metrics with AI semantic vector embeddings.
         """

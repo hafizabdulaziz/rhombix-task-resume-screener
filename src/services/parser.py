@@ -1,9 +1,11 @@
 import io
+
 import pdfplumber
-from pypdf import PdfReader
-from docx import Document
-from src.core.exceptions import AppError
 import structlog
+from docx import Document
+from pypdf import PdfReader
+
+from src.core.exceptions import AppError
 
 logger = structlog.get_logger()
 
@@ -34,7 +36,7 @@ class ResumeParser:
             }
         except Exception as e:
             logger.error("pdf_parsing_failed", error=str(e))
-            raise AppError(f"Failed to parse PDF document: {str(e)}", status_code=400)
+            raise AppError(f"Failed to parse PDF document: {e!s}", status_code=400)
 
     @staticmethod
     async def extract_docx(file_bytes: bytes) -> dict:
@@ -60,7 +62,7 @@ class ResumeParser:
             }
         except Exception as e:
             logger.error("docx_parsing_failed", error=str(e))
-            raise AppError(f"Failed to parse DOCX document: {str(e)}", status_code=400)
+            raise AppError(f"Failed to parse DOCX document: {e!s}", status_code=400)
 
     @classmethod
     async def parse_document(cls, file_type: str, file_bytes: bytes) -> dict:

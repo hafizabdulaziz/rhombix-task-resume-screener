@@ -1,8 +1,10 @@
-from datetime import datetime, timezone
-from sqlalchemy import String, Text, DateTime, Float, ForeignKey, Integer
+from datetime import UTC, datetime
+
+from sqlalchemy import DateTime, Float, ForeignKey, String, Text
 from sqlalchemy.orm import Mapped, mapped_column, relationship
 
 from src.db.base import Base
+
 
 class JobDescription(Base):
     __tablename__ = "job_descriptions"
@@ -13,8 +15,8 @@ class JobDescription(Base):
     description: Mapped[str] = mapped_column(Text)
     required_skills: Mapped[str] = mapped_column(Text) # JSON list or comma-separated
     min_experience_years: Mapped[float] = mapped_column(Float, default=0.0)
-    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
-    updated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc), onupdate=lambda: datetime.now(timezone.utc))
+    created_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
+    updated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC), onupdate=lambda: datetime.now(UTC))
 
     match_results: Mapped[list["MatchResult"]] = relationship("MatchResult", back_populates="job", cascade="all, delete-orphan")
 
@@ -29,7 +31,7 @@ class MatchResult(Base):
     experience_match_score: Mapped[float] = mapped_column(Float, default=0.0)
     semantic_score: Mapped[float] = mapped_column(Float, default=0.0)
     summary_notes: Mapped[str | None] = mapped_column(Text, nullable=True)
-    evaluated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(timezone.utc))
+    evaluated_at: Mapped[datetime] = mapped_column(DateTime, default=lambda: datetime.now(UTC))
 
     job: Mapped["JobDescription"] = relationship("JobDescription", back_populates="match_results")
     candidate: Mapped["Candidate"] = relationship("Candidate", back_populates="match_results")

@@ -1,6 +1,7 @@
+from datetime import UTC, datetime
+from typing import Any
+
 import structlog
-from datetime import datetime, timezone
-from typing import Dict, Any
 
 logger = structlog.get_logger()
 
@@ -11,9 +12,9 @@ class AuditLogger:
     """
     
     @staticmethod
-    def log_action(actor: str, action: str, target_type: str, target_id: str, details: Dict[str, Any] = None):
+    def log_action(actor: str, action: str, target_type: str, target_id: str, details: dict[str, Any] = None):
         audit_entry = {
-            "timestamp": datetime.now(timezone.utc).isoformat(),
+            "timestamp": datetime.now(UTC).isoformat(),
             "actor": actor,
             "action": action,
             "target_type": target_type,

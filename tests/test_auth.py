@@ -1,8 +1,8 @@
-import pytest
+from fastapi import Depends
 from fastapi.testclient import TestClient
-from fastapi import FastAPI, Depends
+
+from src.core.security import create_access_token, require_role
 from src.main import app
-from src.core.security import require_role, create_access_token
 
 client = TestClient(app)
 

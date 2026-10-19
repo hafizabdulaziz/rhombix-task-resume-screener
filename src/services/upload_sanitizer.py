@@ -1,5 +1,7 @@
 import re
+
 import structlog
+
 from src.core.exceptions import AppError
 
 logger = structlog.get_logger()

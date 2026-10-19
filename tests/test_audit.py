@@ -1,5 +1,5 @@
-import pytest
 from src.services.audit import AuditLogger
+
 
 def test_audit_logger():
     entry = AuditLogger.log_action(

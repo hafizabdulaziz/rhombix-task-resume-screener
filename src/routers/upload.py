@@ -1,15 +1,15 @@
-from fastapi import APIRouter, Depends, status, UploadFile, File
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from typing import List
 
+import structlog
+from fastapi import APIRouter, Depends, File, UploadFile, status
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.core.exceptions import AppError
 from src.db.session import get_db
-from src.models.candidate import Candidate, ResumeFile, ExtractionData
+from src.models.candidate import Candidate, ExtractionData, ResumeFile
+from src.services.nlp import NLPTokenizer
 from src.services.parser import ResumeParser
 from src.services.storage import StorageManager
-from src.services.nlp import NLPTokenizer
-from src.core.exceptions import AppError
-import structlog
 
 logger = structlog.get_logger()
 
@@ -17,7 +17,7 @@ router = APIRouter(prefix="/api/v1/upload", tags=["Resume Parser & Batch Intake"
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def upload_resumes(
-    files: List[UploadFile] = File(...),
+    files: list[UploadFile] = File(...),
     db: AsyncSession = Depends(get_db)
 ):
     """

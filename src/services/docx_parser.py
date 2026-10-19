@@ -1,7 +1,9 @@
 import io
-from docx import Document
-from src.core.exceptions import AppError
+
 import structlog
+from docx import Document
+
+from src.core.exceptions import AppError
 
 logger = structlog.get_logger()
 
@@ -30,4 +32,4 @@ class DocxParser:
             }
         except Exception as e:
             logger.error("docx_parsing_failed", error=str(e))
-            raise AppError(f"Failed to parse DOCX document: {str(e)}", status_code=400)
+            raise AppError(f"Failed to parse DOCX document: {e!s}", status_code=400)

@@ -1,5 +1,7 @@
 import pytest
+
 from src.services.email import EmailService
+
 
 @pytest.mark.asyncio
 async def test_email_service():

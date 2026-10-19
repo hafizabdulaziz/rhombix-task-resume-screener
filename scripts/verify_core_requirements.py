@@ -1,14 +1,15 @@
 import sys
 from pathlib import Path
+
 sys.path.insert(0, str(Path(__file__).resolve().parent.parent))
 
 import asyncio
+
 import structlog
 
-from src.services.parser import ResumeParser
-from src.services.matching import ResumeMatcher
-from src.services.export import ReportExporter
 from src.services.email import EmailService
+from src.services.export import ReportExporter
+from src.services.matching import ResumeMatcher
 
 logger = structlog.get_logger()
 

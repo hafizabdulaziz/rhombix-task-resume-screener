@@ -1,16 +1,16 @@
-from fastapi import APIRouter, Depends, status, Response
-from fastapi.responses import StreamingResponse
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from sqlalchemy.orm import selectinload
 import io
 
+import structlog
+from fastapi import APIRouter, Depends, status
+from fastapi.responses import StreamingResponse
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+from sqlalchemy.orm import selectinload
+
+from src.core.exceptions import AppError
 from src.db.session import get_db
-from src.models.candidate import Candidate
 from src.models.job import JobDescription, MatchResult
 from src.services.export import ReportExporter
-from src.core.exceptions import AppError
-import structlog
 
 logger = structlog.get_logger()
 

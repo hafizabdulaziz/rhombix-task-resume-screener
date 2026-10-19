@@ -1,6 +1,6 @@
+import structlog
 from fastapi import FastAPI, Request, status
 from fastapi.responses import JSONResponse
-import structlog
 
 logger = structlog.get_logger(__name__)
 

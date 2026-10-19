@@ -1,4 +1,4 @@
-from typing import List, Set, Tuple
+
 import structlog
 
 logger = structlog.get_logger()
@@ -21,7 +21,7 @@ SYNONYM_MAP = {
 
 class SkillMatcher:
     @staticmethod
-    def normalize_skills(skills: List[str]) -> Set[str]:
+    def normalize_skills(skills: list[str]) -> set[str]:
         normalized = set()
         for skill in skills:
             clean = skill.lower().strip()
@@ -30,7 +30,7 @@ class SkillMatcher:
         return normalized
 
     @staticmethod
-    def calculate_match(required_skills: List[str], candidate_skills: List[str]) -> Tuple[float, List[str], List[str]]:
+    def calculate_match(required_skills: list[str], candidate_skills: list[str]) -> tuple[float, list[str], list[str]]:
         """
         Calculates exact and synonym skill match percentage.
         Returns (match_percentage_0_to_100, matched_skills, missing_skills).

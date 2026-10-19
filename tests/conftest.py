@@ -1,16 +1,14 @@
+
 import pytest
 import pytest_asyncio
-import asyncio
-from sqlalchemy.ext.asyncio import create_async_engine, async_sessionmaker, AsyncSession
 from fastapi.testclient import TestClient
+from sqlalchemy.ext.asyncio import AsyncSession, async_sessionmaker, create_async_engine
 
-from src.main import app
 from src.db.base import Base
 from src.db.session import get_db
+from src.main import app
 
 # Import all models to ensure they are registered with Base.metadata
-from src.models.job import JobDescription, MatchResult, SkillScore
-from src.models.candidate import Candidate, ResumeFile, ExtractionData
 
 TEST_DATABASE_URL = "sqlite+aiosqlite:///:memory:"
 

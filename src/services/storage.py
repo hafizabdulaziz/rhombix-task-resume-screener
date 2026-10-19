@@ -1,8 +1,10 @@
+import asyncio
 import os
 import uuid
-import asyncio
-from src.core.exceptions import AppError
+
 import structlog
+
+from src.core.exceptions import AppError
 
 logger = structlog.get_logger()
 
@@ -36,4 +38,4 @@ class StorageManager:
             return file_path
         except Exception as e:
             logger.error("file_storage_failed", filename=original_filename, error=str(e))
-            raise AppError(f"Failed to persist file to storage: {str(e)}", status_code=500)
+            raise AppError(f"Failed to persist file to storage: {e!s}", status_code=500)

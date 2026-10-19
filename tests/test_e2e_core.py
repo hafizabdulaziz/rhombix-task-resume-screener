@@ -1,8 +1,8 @@
-import pytest
 from fastapi.testclient import TestClient
+
 from src.main import app
-from src.services.matching import ResumeMatcher
 from src.services.export import ReportExporter
+from src.services.matching import ResumeMatcher
 
 client = TestClient(app)
 

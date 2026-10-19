@@ -1,8 +1,10 @@
 import io
+
 import pdfplumber
-from pypdf import PdfReader
-from src.core.exceptions import AppError
 import structlog
+from pypdf import PdfReader
+
+from src.core.exceptions import AppError
 
 logger = structlog.get_logger()
 
@@ -33,4 +35,4 @@ class PDFParser:
             }
         except Exception as e:
             logger.error("pdf_parsing_failed", error=str(e))
-            raise AppError(f"Failed to parse PDF document: {str(e)}", status_code=400)
+            raise AppError(f"Failed to parse PDF document: {e!s}", status_code=400)

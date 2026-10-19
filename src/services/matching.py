@@ -1,9 +1,6 @@
-import math
-import re
-from typing import List, Dict, Set, Tuple, Optional
+import structlog
 from sklearn.feature_extraction.text import TfidfVectorizer
 from sklearn.metrics.pairwise import cosine_similarity
-import structlog
 
 logger = structlog.get_logger()
 
@@ -25,7 +22,7 @@ SYNONYM_MAP = {
 
 class ResumeMatcher:
     @staticmethod
-    def normalize_skills(skills: List[str]) -> Set[str]:
+    def normalize_skills(skills: list[str]) -> set[str]:
         normalized = set()
         for skill in skills:
             clean = skill.lower().strip()
@@ -51,7 +48,7 @@ class ResumeMatcher:
             return 0.0
 
     @staticmethod
-    def calculate_skill_match(required_skills: List[str], candidate_skills: List[str]) -> Tuple[float, List[str], List[str]]:
+    def calculate_skill_match(required_skills: list[str], candidate_skills: list[str]) -> tuple[float, list[str], list[str]]:
         """
         Calculates exact and synonym skill match percentage.
         Returns (match_percentage_0_to_100, matched_skills, missing_skills).
@@ -91,12 +88,12 @@ class ResumeMatcher:
     def compute_composite_score(
         job_description: str,
         resume_text: str,
-        required_skills: List[str],
-        candidate_skills: List[str],
+        required_skills: list[str],
+        candidate_skills: list[str],
         required_experience_years: float,
         candidate_experience_years: float,
-        weights: Optional[Dict[str, float]] = None
-    ) -> Dict[str, any]:
+        weights: dict[str, float] | None = None
+    ) -> dict[str, any]:
         """
         Computes weighted composite score (0-100%) combining:
         - Skills match (default weight: 0.45)

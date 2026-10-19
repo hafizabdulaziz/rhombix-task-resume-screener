@@ -1,6 +1,5 @@
-import re
+
 import structlog
-from typing import Dict, List, Optional
 
 logger = structlog.get_logger()
 
@@ -16,7 +15,7 @@ class EducationParser:
     ]
     
     @classmethod
-    def parse_education(cls, text: str) -> Dict[str, any]:
+    def parse_education(cls, text: str) -> dict[str, any]:
         if not text:
             return {
                 "degree_level": "Unknown",

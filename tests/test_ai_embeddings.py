@@ -1,5 +1,5 @@
-import pytest
 from src.services.ai_embeddings import AIEmbeddingsEngine
+
 
 def test_embedding_generation():
     text = "Senior Python Developer with FastAPI and PostgreSQL expertise."

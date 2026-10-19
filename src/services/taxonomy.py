@@ -1,5 +1,6 @@
 import structlog
-from src.services.nlp import NLPTokenizer, KNOWN_SKILLS
+
+from src.services.nlp import KNOWN_SKILLS, NLPTokenizer
 
 logger = structlog.get_logger()
 

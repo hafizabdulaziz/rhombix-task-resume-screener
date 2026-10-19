@@ -1,4 +1,5 @@
 import re
+
 import structlog
 
 logger = structlog.get_logger()
@@ -7,7 +8,7 @@ COMMON_STOP_WORDS = {
     "the", "a", "an", "and", "or", "but", "in", "on", "at", "to", "for", "with",
     "by", "of", "as", "is", "are", "was", "were", "be", "been", "being", "have",
     "has", "had", "do", "does", "did", "it", "its", "you", "your", "he", "she",
-    "they", "their", "this", "that", "from", "at", "which", "who", "whom", "this"
+    "they", "their", "this", "that", "from", "which", "who", "whom"
 }
 
 KNOWN_SKILLS = {

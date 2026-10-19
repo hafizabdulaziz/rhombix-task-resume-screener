@@ -1,9 +1,12 @@
+from io import BytesIO
+
 import pytest
 from fastapi import UploadFile
-from io import BytesIO
-from src.services.upload import FileValidator
-from src.services.storage import StorageManager
+
 from src.core.exceptions import AppError
+from src.services.storage import StorageManager
+from src.services.upload import FileValidator
+
 
 @pytest.mark.asyncio
 async def test_file_validator_invalid_extension():

@@ -1,5 +1,5 @@
-import pytest
 from src.services.contact_extractor import ContactExtractor
+
 
 def test_contact_extractor():
     sample_text = """

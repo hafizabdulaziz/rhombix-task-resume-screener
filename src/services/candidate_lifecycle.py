@@ -1,8 +1,9 @@
-from sqlalchemy.ext.asyncio import AsyncSession
-from sqlalchemy import select
-from src.models.candidate import Candidate, CandidateStatus
-from src.core.exceptions import AppError
 import structlog
+from sqlalchemy import select
+from sqlalchemy.ext.asyncio import AsyncSession
+
+from src.core.exceptions import AppError
+from src.models.candidate import Candidate, CandidateStatus
 
 logger = structlog.get_logger()
 
