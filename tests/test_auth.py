@@ -6,26 +6,61 @@ from src.core.security import require_role, create_access_token
 
 client = TestClient(app)
 
-# Add a test protected route for RBAC verification
 @app.get("/api/v1/test-rbac-admin", dependencies=[Depends(require_role(["Admin"]))])
 async def admin_only_route():
     return {"message": "Welcome Admin"}
 
+def test_auth_register_login_profile_logout():
+    # Register user
+    reg_response = client.post(
+        "/api/v1/auth/register",
+        json={"email": "profiletest@rhombix.com", "password": "SecurePassword123!", "role": "Recruiter"}
+    )
+    assert reg_response.status_code == 201
+
+    # Login user
+    login_response = client.post(
+        "/api/v1/auth/login",
+        json={"email": "profiletest@rhombix.com", "password": "SecurePassword123!"}
+    )
+    assert login_response.status_code == 200
+    data = login_response.json()
+    access_token = data["access_token"]
+    refresh_token = data["refresh_token"]
+
+    # Test get profile
+    profile_response = client.get(
+        "/api/v1/auth/profile",
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
+    assert profile_response.status_code == 200
+    assert profile_response.json()["email"] == "profiletest@rhombix.com"
+    assert profile_response.json()["role"] == "Recruiter"
+
+    # Test logout
+    logout_response = client.post(
+        "/api/v1/auth/logout",
+        headers={"Authorization": f"Bearer {access_token}"}
+    )
+    assert logout_response.status_code == 200
+
+    # Test refresh token
+    refresh_response = client.post(
+        "/api/v1/auth/refresh",
+        json={"refresh_token": refresh_token}
+    )
+    assert refresh_response.status_code == 200
+    assert "access_token" in refresh_response.json()
+
 def test_rbac_authorization():
-    # Create token with Viewer role
     viewer_token = create_access_token({"sub": "viewer@rhombix.com", "role": "Viewer"})
-    
-    # Try accessing admin route with Viewer token -> should get 403 Forbidden
     response = client.get(
         "/api/v1/test-rbac-admin",
         headers={"Authorization": f"Bearer {viewer_token}"}
     )
     assert response.status_code == 403
 
-    # Create token with Admin role
     admin_token = create_access_token({"sub": "admin@rhombix.com", "role": "Admin"})
-    
-    # Try accessing admin route with Admin token -> should get 200 OK
     response = client.get(
         "/api/v1/test-rbac-admin",
         headers={"Authorization": f"Bearer {admin_token}"}

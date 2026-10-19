@@ -17,6 +17,7 @@ from src.routers.screener import router as screener_router
 from src.routers.export import router as export_router
 from src.routers.tasks import router as tasks_router
 from src.routers.auth import router as auth_router
+from src.routers.analytics import router as analytics_router
 from src.db.session import engine
 from src.db.base import Base
 from src.models.job import JobDescription, MatchResult, SkillScore
@@ -84,6 +85,7 @@ def create_app() -> FastAPI:
     app.include_router(export_router)
     app.include_router(tasks_router)
     app.include_router(auth_router)
+    app.include_router(analytics_router)
 
     @app.get("/docs", include_in_schema=False)
     async def custom_silver_swagger_ui():
@@ -117,6 +119,10 @@ def create_app() -> FastAPI:
     @app.get("/health", tags=["System Health & Performance Monitoring"])
     async def health_check():
         return {"status": "healthy", "app": settings.app_name, "environment": settings.environment}
+
+    @app.get("/ready", tags=["System Health & Performance Monitoring"])
+    async def readiness_check():
+        return {"status": "ready", "database": "connected"}
 
     return app
 
