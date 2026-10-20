@@ -1,3 +1,7 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
 [project]
 name = "rhombix-resumescreener-pro"
 version = "1.0.0"
@@ -27,7 +31,9 @@ dependencies = [
     "redis>=5.2.0",
     "arq>=0.26.1",
     "greenlet>=3.0.0",
-    "slowapi>=0.1.9"
+    "slowapi>=0.1.9",
+    "bcrypt>=4.0.0",
+    "PyJWT>=2.8.0"
 ]
 
 [project.optional-dependencies]
