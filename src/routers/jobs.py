@@ -22,6 +22,18 @@ class JobCreate(BaseModel):
     required_skills: str | None = Field(None, description="Comma-separated skills or JSON")
     min_experience_years: float = Field(0.0, ge=0.0)
 
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "title": "Senior AI Backend Engineer",
+                "department": "Engineering",
+                "description": "We are seeking an experienced Senior AI Backend Engineer with strong expertise in FastAPI, Python, PostgreSQL, and vector databases.",
+                "required_skills": "Python, FastAPI, PostgreSQL, Docker, AI",
+                "min_experience_years": 5.0
+            }
+        }
+    )
+
 class JobResponse(BaseModel):
     id: int
     title: str

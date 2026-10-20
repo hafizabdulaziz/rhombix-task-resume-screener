@@ -20,8 +20,17 @@ logger = structlog.get_logger()
 router = APIRouter(prefix="/api/v1/screener")
 
 class RankRequest(BaseModel):
-    job_id: int
+    job_id: int = Field(..., description="ID of the job description to rank candidates against")
     candidate_ids: list[int] | None = Field(None, description="Optional list of candidate IDs to rank. If omitted, ranks all candidates.")
+
+    model_config = ConfigDict(
+        json_schema_extra={
+            "example": {
+                "job_id": 1,
+                "candidate_ids": [1, 2, 3]
+            }
+        }
+    )
 
 class SkillScoreResponse(BaseModel):
     skill_name: str
