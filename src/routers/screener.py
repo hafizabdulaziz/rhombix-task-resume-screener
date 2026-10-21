@@ -148,7 +148,11 @@ async def rank_candidates(rank_req: RankRequest, db: AsyncSession = Depends(get_
             db.add(skill_score)
 
         await db.commit()
-        await db.refresh(match_result)
+
+        refreshed_res = await db.execute(
+            select(MatchResult).options(selectinload(MatchResult.skill_scores)).where(MatchResult.id == match_result.id)
+        )
+        match_result = refreshed_res.scalar_one()
 
         results.append({
             "id": match_result.id,
