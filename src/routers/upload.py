@@ -17,7 +17,11 @@ router = APIRouter(prefix="/api/v1/upload", tags=["Resume Parser & Batch Intake"
 
 @router.post("/", status_code=status.HTTP_201_CREATED)
 async def upload_resumes(
+<<<<<<< HEAD
     files: list[UploadFile] = File(...),
+=======
+    files: list[UploadFile] = File(..., description="List of resume PDF or DOCX files to upload"),
+>>>>>>> 919de5b (feat: initial commit for Rhombix ResumeScreener Pro)
     db: AsyncSession = Depends(get_db)
 ):
     """

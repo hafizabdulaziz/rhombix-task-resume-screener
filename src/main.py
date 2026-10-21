@@ -63,6 +63,38 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
+<<<<<<< HEAD
+=======
+    def custom_openapi():
+        if app.openapi_schema:
+            return app.openapi_schema
+        openapi_schema = FastAPI.openapi(app)
+        for _, path_item in openapi_schema.get("paths", {}).items():
+            for _, operation in path_item.items():
+                request_body = operation.get("requestBody", {})
+                content = request_body.get("content", {})
+                multipart = content.get("multipart/form-data", {})
+                schema = multipart.get("schema", {})
+                if "$ref" in schema:
+                    ref_name = schema["$ref"].split("/")[-1]
+                    component_schema = openapi_schema.get("components", {}).get("schemas", {}).get(ref_name, {})
+                    for prop_val in component_schema.get("properties", {}).values():
+                        if prop_val.get("type") == "array" and prop_val.get("items", {}).get("contentMediaType") == "application/octet-stream":
+                            prop_val["items"]["format"] = "binary"
+                        elif prop_val.get("contentMediaType") == "application/octet-stream":
+                            prop_val["format"] = "binary"
+                elif schema.get("properties"):
+                    for prop_val in schema.get("properties", {}).values():
+                        if prop_val.get("type") == "array" and prop_val.get("items", {}).get("contentMediaType") == "application/octet-stream":
+                            prop_val["items"]["format"] = "binary"
+                        elif prop_val.get("contentMediaType") == "application/octet-stream":
+                            prop_val["format"] = "binary"
+        app.openapi_schema = openapi_schema
+        return app.openapi_schema
+
+    app.openapi = custom_openapi
+
+>>>>>>> 919de5b (feat: initial commit for Rhombix ResumeScreener Pro)
     # CORS Middleware
     app.add_middleware(
         CORSMiddleware,
