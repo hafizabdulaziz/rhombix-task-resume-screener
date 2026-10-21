@@ -63,8 +63,6 @@ def create_app() -> FastAPI:
         lifespan=lifespan,
     )
 
-<<<<<<< HEAD
-=======
     def custom_openapi():
         if app.openapi_schema:
             return app.openapi_schema
@@ -93,8 +91,6 @@ def create_app() -> FastAPI:
         return app.openapi_schema
 
     app.openapi = custom_openapi
-
->>>>>>> 919de5b (feat: initial commit for Rhombix ResumeScreener Pro)
     # CORS Middleware
     app.add_middleware(
         CORSMiddleware,
