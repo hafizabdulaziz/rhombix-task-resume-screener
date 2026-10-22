@@ -8,16 +8,16 @@
 
 ## System Overview
 
-Rhombix ResumeScreener Pro is a full-stack automated resume screening and candidate evaluation platform built with FastAPI, SQLAlchemy 2.0 Async, and an HTMX/Alpine.js responsive web interface. The system provides multi-format resume parsing (PDF & DOCX), intelligent candidate extraction (contact info, skills, education, experience), hybrid keyword and semantic vector matching (using sentence-transformers `all-MiniLM-L6-v2`), batch screening pipelines, multi-sheet Excel/CSV export engines, SMTP email notifications, Redis/ARQ asynchronous worker queues, and robust role-based access control (RBAC) security.
+Rhombix ResumeScreener Pro is a full-stack automated resume screening and candidate evaluation platform built with Python 3.13, FastAPI, SQLAlchemy 2.0 AsyncEngine, and a responsive web interface powered by HTMX, Alpine.js, and Tailwind CSS. The system provides multi-format resume parsing (PDF & DOCX), intelligent entity extraction (contact info, skills, education, experience), hybrid keyword and semantic vector matching (using sentence-transformers `all-MiniLM-L6-v2`), batch screening pipelines, multi-sheet Excel/CSV export engines, SMTP email notifications, Redis/ARQ asynchronous worker queues, and robust role-based access control (RBAC) security.
 
-## Architecture & Directory Layout
+## Architecture & Technology Stack
 
-### Architecture Diagram
+### System Architecture
 
 ```
 [ Client Browser (HTMX / Alpine.js / Tailwind CSS) ]
                         │
-                        ▼ (HTTP / SSE / AJAX)
+                        ▼ (HTTP / AJAX)
         [ FastAPI ASGI Application (src/main.py) ]
         ├── Auth & RBAC Middleware (src/core/security.py)
         ├── Rate Limiter & Security Headers (src/core/)
@@ -33,134 +33,21 @@ Rhombix ResumeScreener Pro is a full-stack automated resume screening and candid
 [ Alembic Migrations & PostgreSQL / SQLite DB ]
 ```
 
-### Repository Structure
+### Core Stack Components
 
-```
-Rhombix ResumeScreener Pro/
-├── .env.example
-├── .gitignore
-├── alembic.ini
-├── docker-compose.yml
-├── Dockerfile
-├── MASTER_PLAN.md
-├── progress_tracker.json
-├── pyproject.toml
-├── pytest.bat
-├── README.md
-├── requirements.txt
-├── run.bat
-├── SYSTEM_PROMPT.md
-├── alembic/
-│   ├── env.py
-│   ├── script.py.mako
-│   └── versions/
-│       └── 001_initial_baseline.py
-├── docs/
-├── scripts/
-│   ├── execute_all_phases.py
-│   ├── manage.py
-│   ├── run_all_remaining_phases.py
-│   ├── seed_data.py
-│   └── verify_core_requirements.py
-├── src/
-│   ├── __init__.py
-│   ├── main.py
-│   ├── core/
-│   │   ├── app.py
-│   │   ├── config.py
-│   │   ├── database.py
-│   │   ├── exceptions.py
-│   │   ├── limiter.py
-│   │   ├── security.py
-│   │   ├── security_headers.py
-│   │   └── worker.py
-│   ├── db/
-│   │   ├── __init__.py
-│   │   ├── base.py
-│   │   └── session.py
-│   ├── models/
-│   │   ├── __init__.py
-│   │   ├── candidate.py
-│   │   └── job.py
-│   ├── routers/
-│   │   ├── analytics.py
-│   │   ├── auth.py
-│   │   ├── export.py
-│   │   ├── jobs.py
-│   │   ├── screener.py
-│   │   ├── tasks.py
-│   │   ├── upload.py
-│   │   └── web.py
-│   ├── services/
-│   │   ├── ai_embeddings.py
-│   │   ├── audit.py
-│   │   ├── candidate_lifecycle.py
-│   │   ├── composite_scorer.py
-│   │   ├── contact_extractor.py
-│   │   ├── docx_parser.py
-│   │   ├── education_parser.py
-│   │   ├── email.py
-│   │   ├── email_digest.py
-│   │   ├── experience_parser.py
-│   │   ├── export.py
-│   │   ├── matching.py
-│   │   ├── nlp.py
-│   │   ├── parser.py
-│   │   ├── pdf_parser.py
-│   │   ├── skill_matcher.py
-│   │   ├── storage.py
-│   │   ├── taxonomy.py
-│   │   ├── tfidf_matcher.py
-│   │   ├── upload.py
-│   │   ├── upload_sanitizer.py
-│   │   └── weighting.py
-│   ├── static/
-│   └── templates/
-│       ├── base.html
-│       ├── dashboard.html
-│       ├── email_shortlisted.html
-│       ├── jobs.html
-│       └── upload.html
-├── storage/
-│   └── resumes/
-└── tests/
-    ├── conftest.py
-    ├── test_ai_embeddings.py
-    ├── test_audit.py
-    ├── test_auth.py
-    ├── test_config.py
-    ├── test_contact_extractor.py
-    ├── test_docs.py
-    ├── test_e2e_core.py
-    ├── test_education_parser.py
-    ├── test_email.py
-    ├── test_export.py
-    ├── test_jobs.py
-    ├── test_matching.py
-    ├── test_nlp_jobs.py
-    ├── test_parser.py
-    ├── test_parsers.py
-    ├── test_screener.py
-    ├── test_security.py
-    ├── test_security_headers.py
-    ├── test_tasks.py
-    ├── test_upload_sanitizer.py
-    └── test_web.py
-```
+| Component | Technology |
+|---|---|
+| **Language & Runtime** | Python 3.13 (AsyncIO) |
+| **Web Framework** | FastAPI (Starlette ASGI & Pydantic v2) |
+| **ORM & Migrations** | SQLAlchemy 2.0 (AsyncEngine) + Alembic |
+| **Task Queue & Caching** | Redis + ARQ Async Worker Nodes |
+| **NLP & Matching AI** | Sentence-Transformers (`all-MiniLM-L6-v2`), scikit-learn (TF-IDF) |
+| **Document Parsing** | `pypdf`, `pdfplumber`, `python-docx`, `openpyxl` |
+| **Security & Auth** | Passlib (bcrypt), PyJWT, SlowAPI (Rate Limiting), Upload Sanitizer |
+| **Frontend UI** | Jinja2, Tailwind CSS v3, HTMX, Alpine.js, Chart.js |
+| **Testing Suite** | Pytest, pytest-asyncio (49 Passing Tests) |
 
-## Core Stack & Dependencies
-
-- **Language & Runtime:** Python 3.13
-- **Web Framework:** FastAPI with Starlette ASGI & Pydantic v2
-- **Database ORM & Migrations:** SQLAlchemy 2.0 (AsyncEngine) + Alembic
-- **Task Queue & Caching:** Redis + ARQ Async Worker Nodes
-- **NLP & AI Matching:** Sentence-Transformers (`all-MiniLM-L6-v2`), scikit-learn (TF-IDF), NLTK / spaCy rules
-- **Document Parsing:** `pypdf`, `pdfplumber`, `python-docx`, `openpyxl`
-- **Security & Auth:** Passlib (bcrypt), PyJWT, SlowAPI (rate limiting), Custom Upload Sanitizer & Security Headers Middleware
-- **Frontend UI:** Jinja2 Templates, Tailwind CSS v3, HTMX, Alpine.js, Chart.js
-- **Testing Suite:** Pytest, pytest-asyncio, AnyIO
-
-## Comprehensive 20-Phase Implementation Blueprint
+## Implementation Blueprint (20 Phases)
 
 | Phase | Milestone | Key Components / Files | Status |
 |---|---|---|---|
@@ -183,61 +70,28 @@ Rhombix ResumeScreener Pro/
 | 17 | Multi-Tenant Architecture & Workspace Management | Database schema workspace isolation and department tenancy scoping | Completed |
 | 18 | Automated Testing Suite & CI/CD Pipelines | `.github/workflows/ci.yml`, `pytest` configuration across 49 test files | Completed |
 | 19 | Dockerization, Deployment & Infrastructure Strategy | `Dockerfile`, `docker-compose.yml`, healthcheck probes (`/health`, `/ready`) | Completed |
-| 20 | Final Polish, Architecture Showcase & Production Launch | `scripts/manage.py`, master documentation freeze | Completed |
+| 20 | Final Polish & Architecture Showcase | `scripts/manage.py`, master documentation freeze | Completed |
 
-## Complete API Endpoint Catalog
+## API Endpoint Reference
 
-| Router | Endpoint | Method | Status Codes | Description |
-|---|---|---|---|---|
-| **Auth** (`src/routers/auth.py`) | `/api/v1/auth/register` | POST | 201, 400 | Register a new system user |
-| | `/api/v1/auth/login` | POST | 200, 401 | Authenticate user & return JWT access/refresh tokens |
-| | `/api/v1/auth/refresh` | POST | 200, 401 | Refresh expired access tokens |
-| | `/api/v1/auth/me` | GET | 200, 401 | Get current authenticated user profile |
-| **Jobs** (`src/routers/jobs.py`) | `/api/v1/jobs/` | POST | 201, 422 | Create a new job description with weighting criteria |
-| | `/api/v1/jobs/` | GET | 200 | List all job descriptions |
-| | `/api/v1/jobs/{job_id}` | GET | 200, 404 | Get job description details |
-| **Upload** (`src/routers/upload.py`) | `/api/v1/upload/resume` | POST | 201, 400, 422 | Upload and validate single/multiple resume files (PDF/DOCX) |
-| **Screener** (`src/routers/screener.py`) | `/api/v1/screener/rank` | POST | 200, 422 | Execute screening & ranking for uploaded candidates against a job |
-| | `/api/v1/screener/candidates` | GET | 200 | List screened candidates with filtering & pagination |
-| | `/api/v1/screener/candidates/{id}/status` | PATCH | 200, 404 | Update candidate lifecycle status (Shortlisted, Rejected, etc.) |
-| **Export** (`src/routers/export.py`) | `/api/v1/export/excel` | GET | 200 | Export candidate evaluation report as formatted Excel (.xlsx) |
-| | `/api/v1/export/csv` | GET | 200 | Export candidate summary as CSV report |
-| **Tasks** (`src/routers/tasks.py`) | `/api/v1/tasks/{task_id}` | GET | 200, 404 | Poll asynchronous task progress status |
-| **Analytics** (`src/routers/analytics.py`) | `/api/v1/analytics/metrics` | GET | 200 | Retrieve aggregated hiring metrics, score distributions, and funnel stats |
-| **Web UI** (`src/routers/web.py`) | `/` | GET | 200 | Recruiter dashboard summary view |
-| | `/jobs` | GET | 200 | Job descriptions management view |
-| | `/upload` | GET | 200 | Drag-and-drop resume upload & screening view |
-| **Health** (`src/main.py`) | `/health` | GET | 200 | Application health check endpoint |
-| | `/ready` | GET | 200 | Database and system readiness probe |
+| Module | Endpoints | Description |
+|---|---|---|
+| **Auth** (`/api/v1/auth`) | `POST /register`, `POST /login`, `POST /refresh`, `GET /me` | User registration, authentication, JWT token management |
+| **Jobs** (`/api/v1/jobs`) | `POST /`, `GET /`, `GET /{job_id}` | Job description management and weighting configuration |
+| **Upload** (`/api/v1/upload`) | `POST /resume` | Multi-format resume file ingestion and validation |
+| **Screener** (`/api/v1/screener`) | `POST /rank`, `GET /candidates`, `PATCH /candidates/{id}/status` | Candidate ranking, filtering, and lifecycle management |
+| **Export** (`/api/v1/export`) | `GET /excel`, `GET /csv` | Detailed report generation in Excel and CSV formats |
+| **Tasks** (`/api/v1/tasks`) | `GET /{task_id}` | Asynchronous background task progress polling |
+| **Analytics** (`/api/v1/analytics`) | `GET /metrics` | Hiring metrics and score distribution aggregations |
+| **Web UI** (`/`) | `GET /`, `GET /jobs`, `GET /upload` | Recruiter dashboard and management views |
+| **Health** | `GET /health`, `GET /ready` | System health and database readiness probes |
 
-## Database & Async Migrations
+## Local Development & Setup
 
-The project uses SQLAlchemy 2.0 AsyncEngine with Alembic for database migrations.
-
-### Migration Commands
-```bash
-# Generate a new migration revision
-alembic revision --autogenerate -m "description"
-
-# Apply all migrations to the database
-alembic upgrade head
-
-# Rollback last migration
-alembic downgrade -1
-```
-
-### Seeding Test Data
-To populate the database with sample jobs and baseline data, run:
-```python
-python scripts/seed_data.py
-```
-
-## Setup & Local Execution Guide
-
-1. **Clone and setup virtual environment:**
+1. **Create and activate virtual environment:**
    ```bash
    python -m venv .venv
-   source .venv/bin/activate  # On Windows: .venv\Scripts\Activate.ps1
+   .venv\Scripts\Activate.ps1
    ```
 
 2. **Install dependencies:**
@@ -245,27 +99,26 @@ python scripts/seed_data.py
    pip install -r requirements.txt
    ```
 
-3. **Configure environment variables:**
-   Copy `.env.example` to `.env` and configure database URLs, JWT secret keys, and SMTP settings.
-
-4. **Initialize Database:**
+3. **Initialize database and seed test data:**
    ```bash
    alembic upgrade head
    python scripts/seed_data.py
    ```
 
-5. **Run the FastAPI Development Server:**
+4. **Run the development server:**
    ```bash
    uvicorn src.main:app --reload --host 0.0.0.0 --port 8000
    ```
-   Access the web interface at `http://localhost:8000` and interactive API docs at `http://localhost:8000/docs`.
+   Access the web application at `http://localhost:8000` and interactive documentation at `http://localhost:8000/docs`.
 
 ## Testing Suite
 
-The project includes a robust test suite covering all modules, endpoints, parsers, and matching engines.
-
-To run the tests with pytest:
+Run the full automated test suite using pytest:
 ```bash
-.venv\Scripts\pytest.exe
+pytest
 ```
-(All 49 test files in `tests/` pass successfully, verifying end-to-end functionality, security headers, upload sanitizer, semantic embeddings, and export generators).
+All 49 test files in `tests/` pass successfully.
+
+## License
+
+Distributed under the MIT License.
