@@ -1,0 +1,14 @@
+{
+    "ACC0001": {
+        "holder_name": "Hafiz Abdul Aziz",
+        "balance": 48500.0
+    },
+    "ACC0002": {
+        "holder_name": "Ahmed",
+        "balance": 69000.0
+    },
+    "ACC0003": {
+        "holder_name": "Faizan",
+        "balance": 23000.0
+    }
+}
